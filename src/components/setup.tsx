@@ -1,160 +1,226 @@
 "use client";
 
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import {
+  Ban, Beef, ChevronLeft, Cookie, CookingPot, Drumstick, Fish, Flame, Hamburger, IceCreamBowl, MapPin, PiggyBank,
+  Popcorn, Shrimp, Soup, UtensilsCrossed, Wallet, Wheat, Zap, type LucideIcon,
+} from "lucide-react";
 import { useState } from "react";
+import { StickyActions } from "@/components/app-shell";
+import { ConfettiBurst } from "@/components/confetti";
+import { SelectChip, SelectTile } from "@/components/select-tile";
 import { Button } from "@/components/ui/button";
-import { CHAIN_NAMES } from "@/lib/catalog";
+import { Slider } from "@/components/ui/slider";
+import { CHAIN_COLORS, CHAIN_NAMES } from "@/lib/catalog";
 import { DEFAULT_PREFS } from "@/lib/store/db";
 import type { ChainId, Prefs, Priority } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-const BUDGETS = [100, 150, 200, 300];
-const FOODS = ["chicken", "burger", "spaghetti", "rice", "noodles", "sisig", "siopao", "halo-halo", "fries", "fish"];
-const DISLIKES = ["seafood", "beef", "spicy"];
-const APPETITES: { id: Prefs["appetite"]; label: string; sub: string }[] = [
-  { id: "light", label: "Light eater", sub: "Konti lang, busog na" },
-  { id: "normal", label: "Sakto lang", sub: "Normal na kain" },
-  { id: "big", label: "Malakas kumain", sub: "Laging gutom" },
+const QUICK_BUDGETS = [100, 150, 200, 300];
+const FOODS: { id: string; label: string; Icon: LucideIcon }[] = [
+  { id: "chicken", label: "Chicken", Icon: Drumstick },
+  { id: "burger", label: "Burger", Icon: Hamburger },
+  { id: "spaghetti", label: "Spaghetti", Icon: UtensilsCrossed },
+  { id: "rice", label: "Rice meal", Icon: Wheat },
+  { id: "noodles", label: "Noodles", Icon: Soup },
+  { id: "siopao", label: "Siopao", Icon: Cookie },
+  { id: "fries", label: "Fries", Icon: Popcorn },
+  { id: "fish", label: "Fish", Icon: Fish },
+  { id: "sisig", label: "Sisig", Icon: CookingPot },
+  { id: "halo-halo", label: "Halo-halo", Icon: IceCreamBowl },
 ];
-const PRIORITIES: { id: Priority; label: string }[] = [
-  { id: "cheap", label: "Mura" },
-  { id: "fast", label: "Mabilis" },
-  { id: "near", label: "Malapit" },
-  { id: "filling", label: "Busog" },
+// "pork" maps to prefs.avoid_pork; the rest go to prefs.dislikes.
+const AVOIDS: { id: string; label: string; Icon: LucideIcon }[] = [
+  { id: "pork", label: "Baboy", Icon: PiggyBank },
+  { id: "beef", label: "Baka", Icon: Beef },
+  { id: "seafood", label: "Seafood", Icon: Shrimp },
+  { id: "spicy", label: "Maanghang", Icon: Flame },
 ];
-
-function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={cn(
-        "min-h-11 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-        on ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:bg-muted",
-      )}
-    >
-      {children}
-    </button>
-  );
-}
+const APPETITES: { id: Prefs["appetite"]; label: string; helper: string; Icon: LucideIcon }[] = [
+  { id: "light", label: "Konti lang", helper: "Busog agad, light eater", Icon: Cookie },
+  { id: "normal", label: "Sakto", helper: "Normal na kain", Icon: Drumstick },
+  { id: "big", label: "Malakas kumain", helper: "Laging gutom, extra rice!", Icon: CookingPot },
+];
+const PRIORITIES: { id: Priority; label: string; Icon: LucideIcon }[] = [
+  { id: "cheap", label: "Mura", Icon: Wallet },
+  { id: "filling", label: "Busog", Icon: Soup },
+  { id: "near", label: "Malapit", Icon: MapPin },
+  { id: "fast", label: "Mabilis", Icon: Zap },
+];
 
 const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
-export function Setup({ onDone }: { onDone: (p: Prefs) => void }) {
+/** 6-step setup. Pass `initial` to edit existing prefs (Settings). */
+export function Setup({ onDone, onBack, initial }: { onDone: (p: Prefs) => void; onBack?: () => void; initial?: Prefs }) {
+  const reduce = useReducedMotion();
   const [step, setStep] = useState(0);
-  const [p, setP] = useState<Prefs>({ ...DEFAULT_PREFS, priority: [] });
-  const [custom, setCustom] = useState("");
+  const [dir, setDir] = useState(1);
+  const [p, setP] = useState<Prefs>(initial ?? { ...DEFAULT_PREFS, priority: [] });
+  const [noneAvoid, setNoneAvoid] = useState(!!initial && !initial.avoid_pork && !initial.dislikes.length);
+  const [appetitePicked, setAppetitePicked] = useState(!!initial);
+  const [burst, setBurst] = useState(false);
   const update = (patch: Partial<Prefs>) => setP((prev) => ({ ...prev, ...patch }));
 
   const finish = (prefs: Prefs) => {
-    // Unranked priorities go last in default order.
     const rest = DEFAULT_PREFS.priority.filter((x) => !prefs.priority.includes(x));
-    onDone({ ...prefs, priority: [...prefs.priority, ...rest], created_at: new Date().toISOString() });
+    onDone({ ...prefs, priority: [...prefs.priority, ...rest], created_at: prefs.created_at || new Date().toISOString() });
+  };
+  const go = (to: number) => {
+    setDir(to > step ? 1 : -1);
+    setStep(to);
   };
 
-  const steps = [
+  const avoidOn = (id: string) => (id === "pork" ? p.avoid_pork : p.dislikes.includes(id));
+  const toggleAvoid = (id: string) => {
+    setNoneAvoid(false);
+    if (id === "pork") update({ avoid_pork: !p.avoid_pork });
+    else update({ dislikes: toggle(p.dislikes, id) });
+  };
+
+  const steps: { title: string; helper: string; valid: boolean; body: React.ReactNode }[] = [
     {
       title: "Magkano usually budget mo?",
+      helper: "Para sa isang kain. Pwede mong palitan kahit kailan.",
+      valid: p.usual_budget > 0,
       body: (
-        <div className="flex flex-wrap gap-2">
-          {BUDGETS.map((b) => (
-            <Chip key={b} on={p.usual_budget === b && !custom} onClick={() => (setCustom(""), update({ usual_budget: b }))}>
-              ₱{b}
-            </Chip>
-          ))}
-          <input
-            inputMode="numeric"
-            placeholder="Iba pa ₱"
-            value={custom}
-            onChange={(e) => {
-              const v = e.target.value.replace(/\D/g, "");
-              setCustom(v);
-              if (Number(v) > 0) update({ usual_budget: Number(v) });
-            }}
-            className="min-h-11 w-28 rounded-full border px-4 text-sm"
+        <div className="flex flex-col gap-6">
+          <div className="text-center text-6xl font-bold tabular-nums" aria-live="polite">
+            ₱{p.usual_budget}
+          </div>
+          <Slider
+            min={50}
+            max={500}
+            step={10}
+            value={[p.usual_budget]}
+            onValueChange={(v) => update({ usual_budget: Array.isArray(v) ? v[0] : v })}
+            aria-label="Budget"
           />
+          <div className="flex flex-wrap justify-center gap-2">
+            {QUICK_BUDGETS.map((b) => (
+              <SelectChip key={b} on={p.usual_budget === b} onClick={() => update({ usual_budget: b })}>
+                ₱{b}
+              </SelectChip>
+            ))}
+          </div>
         </div>
       ),
     },
     {
       title: "Ano'ng hilig mo?",
+      helper: "Pumili ng kahit ilan.",
+      valid: p.favorite_foods.length > 0,
       body: (
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-3 gap-2">
           {FOODS.map((f) => (
-            <Chip key={f} on={p.favorite_foods.includes(f)} onClick={() => update({ favorite_foods: toggle(p.favorite_foods, f) })}>
-              {f}
-            </Chip>
+            <SelectTile key={f.id} Icon={f.Icon} label={f.label} on={p.favorite_foods.includes(f.id)} onClick={() => update({ favorite_foods: toggle(p.favorite_foods, f.id) })} />
           ))}
         </div>
       ),
     },
     {
-      title: "Ano'ng ayaw mo?",
+      title: "Ano'ng iniiwasan mo?",
+      helper: "Hindi namin ito irerekomenda.",
+      valid: noneAvoid || p.avoid_pork || p.dislikes.length > 0,
       body: (
-        <div className="flex flex-wrap gap-2">
-          <Chip on={p.avoid_pork} onClick={() => update({ avoid_pork: !p.avoid_pork })}>
-            bawal baboy
-          </Chip>
-          {DISLIKES.map((d) => (
-            <Chip key={d} on={p.dislikes.includes(d)} onClick={() => update({ dislikes: toggle(p.dislikes, d) })}>
-              {d}
-            </Chip>
+        <div className="grid grid-cols-3 gap-2">
+          {AVOIDS.map((a) => (
+            <SelectTile key={a.id} Icon={a.Icon} label={a.label} on={avoidOn(a.id)} onClick={() => toggleAvoid(a.id)} />
           ))}
+          <SelectTile
+            Icon={Ban}
+            label="Wala"
+            on={noneAvoid}
+            onClick={() => {
+              setNoneAvoid(true);
+              update({ avoid_pork: false, dislikes: [] });
+            }}
+          />
         </div>
       ),
     },
     {
       title: "Gaano ka kalakas kumain?",
+      helper: "Para alam namin kung gaano ka-busog dapat.",
+      valid: appetitePicked,
       body: (
-        <div className="grid gap-2">
+        <div className="flex flex-col gap-3">
           {APPETITES.map((a) => (
-            <button
+            <SelectTile
               key={a.id}
-              type="button"
-              onClick={() => update({ appetite: a.id })}
-              className={cn("rounded-xl border p-4 text-left", p.appetite === a.id && "border-primary bg-primary/10")}
-            >
-              <div className="font-semibold">{a.label}</div>
-              <div className="text-sm text-muted-foreground">{a.sub}</div>
-            </button>
+              layout="row"
+              Icon={a.Icon}
+              label={a.label}
+              helper={a.helper}
+              on={appetitePicked && p.appetite === a.id}
+              onClick={() => {
+                setAppetitePicked(true);
+                update({ appetite: a.id });
+              }}
+            />
           ))}
         </div>
       ),
     },
     {
-      title: "I-tap ayon sa importansya",
-      hint: "Una mong i-tap = pinaka-importante",
+      title: "Ano'ng pinaka-importante?",
+      helper: "Una mong i-tap = pinaka-importante",
+      valid: p.priority.length > 0,
       body: (
-        <div className="grid grid-cols-2 gap-2">
-          {PRIORITIES.map((x) => {
-            const rank = p.priority.indexOf(x.id);
-            return (
-              <button
-                key={x.id}
-                type="button"
-                onClick={() => update({ priority: toggle(p.priority, x.id) })}
-                className={cn("relative min-h-16 rounded-xl border p-4 font-semibold", rank >= 0 && "border-primary bg-primary/10")}
-              >
-                {x.label}
-                {rank >= 0 && (
-                  <span className="absolute right-2 top-2 flex size-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
-                    {rank + 1}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+        <div className="flex flex-col gap-3">
+          {/* Ranked first, in tap order; reorder animates. */}
+          {[...PRIORITIES]
+            .sort((a, b) => {
+              const ra = p.priority.indexOf(a.id), rb = p.priority.indexOf(b.id);
+              return (ra < 0 ? 9 : ra) - (rb < 0 ? 9 : rb);
+            })
+            .map((x) => {
+              const rank = p.priority.indexOf(x.id);
+              return (
+                <motion.div key={x.id} layout={!reduce} transition={{ duration: 0.2 }}>
+                  <SelectTile
+                    layout="row"
+                    Icon={x.Icon}
+                    label={x.label}
+                    on={rank >= 0}
+                    onClick={() => update({ priority: toggle(p.priority, x.id) })}
+                    badge={
+                      rank >= 0 ? (
+                        <span className="ml-auto flex size-8 items-center justify-center rounded-full bg-white text-sm font-bold text-primary" aria-label={`Rank ${rank + 1}`}>
+                          {rank + 1}
+                        </span>
+                      ) : undefined
+                    }
+                  />
+                </motion.div>
+              );
+            })}
+          {p.priority.length > 0 && (
+            <button type="button" onClick={() => update({ priority: [] })} className="min-h-11 self-center text-sm font-medium text-primary underline">
+              Ulitin
+            </button>
+          )}
         </div>
       ),
     },
     {
       title: "Favorite mong kainan?",
+      helper: "Optional. Bibigyan namin ng konting dagdag na puntos.",
+      valid: true,
       body: (
-        <div className="flex flex-wrap gap-2">
-          {(Object.keys(CHAIN_NAMES) as ChainId[]).map((c) => (
-            <Chip key={c} on={p.favorite_chains.includes(c)} onClick={() => update({ favorite_chains: toggle(p.favorite_chains, c) })}>
-              {CHAIN_NAMES[c]}
-            </Chip>
-          ))}
+        <div className="grid grid-cols-2 gap-2">
+          {(Object.keys(CHAIN_NAMES) as ChainId[]).map((c) => {
+            const on = p.favorite_chains.includes(c);
+            return (
+              <SelectTile
+                key={c}
+                layout="row"
+                label={CHAIN_NAMES[c]}
+                on={on}
+                onClick={() => update({ favorite_chains: toggle(p.favorite_chains, c) })}
+                badge={<span className={cn("absolute right-3 top-3 size-2.5 rounded-full ring-2 ring-white", CHAIN_COLORS[c])} aria-hidden />}
+              />
+            );
+          })}
         </div>
       ),
     },
@@ -164,33 +230,64 @@ export function Setup({ onDone }: { onDone: (p: Prefs) => void }) {
   const last = step === steps.length - 1;
 
   return (
-    <div className="flex min-h-[80vh] flex-col gap-6 py-6">
-      <div className="flex items-center justify-between">
-        <div className="flex gap-1.5">
+    <div className="flex flex-1 flex-col">
+      <div className="flex items-center gap-3 py-2">
+        <button
+          type="button"
+          aria-label="Balik"
+          onClick={() => (step > 0 ? go(step - 1) : onBack?.())}
+          disabled={step === 0 && !onBack}
+          className="flex size-11 items-center justify-center rounded-full hover:bg-muted disabled:opacity-30"
+        >
+          <ChevronLeft className="size-5" />
+        </button>
+        <div className="flex flex-1 gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={6} aria-valuenow={step + 1} aria-label="Setup progress">
           {steps.map((_, i) => (
-            <span key={i} className={cn("h-1.5 w-6 rounded-full bg-muted", i <= step && "bg-primary")} />
+            <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors", i <= step ? "bg-brand" : "bg-border")} />
           ))}
         </div>
-        <button type="button" onClick={() => finish({ ...DEFAULT_PREFS, ...p })} className="text-sm text-muted-foreground underline">
+        <button type="button" onClick={() => finish({ ...DEFAULT_PREFS, ...p })} className="min-h-11 px-2 text-sm font-medium text-muted-foreground underline">
           Laktawan
         </button>
       </div>
-      {step === 0 && <p className="text-lg">Tara, kain tayo! 30 seconds lang &apos;to.</p>}
-      <div className="flex flex-col gap-3">
-        <h2 className="text-2xl font-bold">{s.title}</h2>
-        {"hint" in s && <p className="text-sm text-muted-foreground">{s.hint}</p>}
-        {s.body}
-      </div>
-      <div className="mt-auto flex gap-2">
+
+      <AnimatePresence mode="wait" initial={false} custom={dir}>
+        <motion.div
+          key={step}
+          initial={reduce ? false : { opacity: 0, x: 24 * dir }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={reduce ? undefined : { opacity: 0, x: -24 * dir }}
+          transition={{ duration: 0.2 }}
+          className="flex flex-col gap-2 pt-4"
+        >
+          <h1 className="text-[26px] leading-tight">{s.title}</h1>
+          <p className="mb-4 text-muted-foreground">{s.helper}</p>
+          {s.body}
+        </motion.div>
+      </AnimatePresence>
+
+      <StickyActions>
         {step > 0 && (
-          <Button variant="outline" size="lg" className="h-12" onClick={() => setStep(step - 1)}>
+          <Button variant="ghost" size="lg" className="h-12 px-5" onClick={() => go(step - 1)}>
             Balik
           </Button>
         )}
-        <Button size="lg" className="h-12 flex-1" onClick={() => (last ? finish(p) : setStep(step + 1))}>
-          {last ? "Game na!" : "Next"}
-        </Button>
-      </div>
+        <div className="relative flex-1">
+          <Button
+            size="lg"
+            className="h-12 w-full text-base"
+            disabled={!s.valid}
+            onClick={() => {
+              if (!last) return go(step + 1);
+              setBurst(true);
+              setTimeout(() => finish(p), reduce ? 0 : 450);
+            }}
+          >
+            {last ? (initial ? "I-save" : "Simulan na!") : "Tuloy"}
+          </Button>
+          {burst && <ConfettiBurst />}
+        </div>
+      </StickyActions>
     </div>
   );
 }
