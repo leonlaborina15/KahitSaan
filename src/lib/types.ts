@@ -13,7 +13,7 @@ export interface CatalogItem {
   category: Category;
   tags: string[];
   protein: string | null;
-  contains_pork: boolean;
+  contains_pork: boolean | "unknown"; // "unknown" counts as pork when avoiding pork
   spicy: boolean;
   fill_score: number; // 1–5
   prep_minutes: number;
@@ -21,6 +21,7 @@ export interface CatalogItem {
   desc: string;
   food_type: string; // display group: chicken, burger, pasta, rice meal, noodles, sisig, snack, dessert, drink
   includes: string; // what's in the box
+  breakfast_only: boolean; // only in the breakfast period (05:00–10:00)
 }
 
 export interface Branch {

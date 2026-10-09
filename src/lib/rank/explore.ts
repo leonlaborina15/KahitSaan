@@ -1,10 +1,12 @@
 // Item-first results for the Results screen and Kahit Saan (SPEC §5–6 + wait/peak/open rules).
 // Builds combos per branch, scores them, then groups identical meals so each appears once
 // at its best branch with a count of other branches. Pure.
-import type { Branch, Catalog, CatalogItem, MealPeriod, Prefs, SubScores, TasteProfile } from "@/lib/types";
+import type { Branch, Catalog, CatalogItem, Prefs, SubScores, TasteProfile } from "@/lib/types";
 import type { ResolvedFilters } from "@/lib/parse/validate";
 import { buildCombos } from "./combos";
-import { distanceKm, isOpen, travelMinutes, type LatLng } from "./distance";
+import { distanceKm, isAvailable, isOpen, mealPeriod, travelMinutes, type LatLng } from "./distance";
+
+export { mealPeriod };
 import { templateReason } from "./reason";
 import { tasteScore } from "./score";
 
@@ -78,15 +80,6 @@ export interface ItemResult extends BranchOption {
 const DISTANCE_CAP_KM = 5;
 const TARGET_FILL = { low: 2, normal: 3, high: 5 };
 const PEAK_BUMP_MIN = 5;
-
-export function mealPeriod(now: Date): MealPeriod {
-  const h = now.getHours();
-  if (h >= 5 && h < 10) return "breakfast";
-  if (h >= 10 && h < 14) return "lunch";
-  if (h >= 14 && h < 17) return "merienda";
-  if (h >= 17 && h < 21) return "dinner";
-  return "late";
-}
 
 /** Peak: 11:30–13:30 and 18:00–20:00. */
 export function isPeak(now: Date): boolean {
@@ -166,7 +159,7 @@ export function explore({ catalog, filters: f, prefs, taste, here, now = new Dat
     if (f.open_only && !opt.status.open) continue;
     if (opt.distance_km > maxKm) continue;
     if (f.fast_only && opt.speed !== "fast") continue;
-    const menu = catalog.items.filter((i) => i.chain === branch.chain && !excludeItems?.has(i.id));
+    const menu = catalog.items.filter((i) => i.chain === branch.chain && isAvailable(i, now) && !excludeItems?.has(i.id));
     for (const items of buildCombos(menu, f)) {
       if (!matchesType(items, f.food_types)) continue;
       const total = items.reduce((s, i) => s + i.price, 0);

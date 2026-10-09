@@ -1,5 +1,5 @@
 // Distance + open-hours helpers. Pure.
-import type { Branch } from "@/lib/types";
+import type { Branch, CatalogItem, MealPeriod } from "@/lib/types";
 
 export interface LatLng {
   lat: number;
@@ -31,6 +31,18 @@ export function isOpen(branch: Branch, now: Date): boolean {
   const close = toMin(branch.hours.close);
   return open <= close ? t >= open && t < close : t >= open || t < close;
 }
+
+export function mealPeriod(now: Date): MealPeriod {
+  const h = now.getHours();
+  if (h >= 5 && h < 10) return "breakfast";
+  if (h >= 10 && h < 14) return "lunch";
+  if (h >= 14 && h < 17) return "merienda";
+  if (h >= 17 && h < 21) return "dinner";
+  return "late";
+}
+
+/** Breakfast-only items are hidden outside the breakfast period. */
+export const isAvailable = (item: CatalogItem, now: Date) => !item.breakfast_only || mealPeriod(now) === "breakfast";
 
 export const mapsUrl = (b: LatLng) =>
   `https://www.google.com/maps/dir/?api=1&destination=${b.lat},${b.lng}&travelmode=walking`;

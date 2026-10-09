@@ -47,16 +47,23 @@
   "name": "1-pc Chickenjoy with Rice",
   "price": 99,
   "category": "meal",
-  "tags": ["chicken", "fried", "rice", "savory"],
+  "tags": ["chicken", "fried", "rice"],
   "protein": "chicken",
   "contains_pork": false,
   "spicy": false,
   "fill_score": 3,
   "prep_minutes": 4,
   "serves": 1,
-  "desc": "Crispy fried chicken with steamed rice and gravy"
+  "desc": "Crispy fried chicken with steamed rice and gravy",
+  "food_type": "chicken",
+  "includes": "1 pc Chickenjoy, rice, gravy",
+  "breakfast_only": false
 }
 ```
+Full field rules, tag list and the CSV source sheets: `docs/dataset.md`.
+- `contains_pork`: `true | false | "unknown"`. `"unknown"` counts as pork when the user avoids pork.
+- `breakfast_only`: shown only in the breakfast period (05:00–10:00).
+- `tags`: only words from the tag list in `docs/dataset.md`, so parser cravings match.
 - `category`: `meal | main | side | drink | dessert | bundle`
 - `fill_score`: 1 (snack) – 5 (very busog). Hand-labeled.
 - `prep_minutes`: estimate. Default by category: side/drink 2, meal 4, grilled/made-to-order 8. Chain base added from branch.
@@ -107,6 +114,7 @@ Items are chain-wide (same menu at every branch of a chain). `catalog.json` = `{
 ```
 - Initial vector = embedding of `"likes: " + favorite_foods.join(", ")`.
 - On each pick: `vector = normalize(0.8 * vector + 0.2 * embed(item.name + ". " + item.desc))`. Increment counts. Keep last 10 picks.
+- On a 👎 rating (Kinain): `vector = normalize(vector - 0.1 * embed(...))`, tag/chain counts −1. Undoing the 👎 adds them back.
 - Item embeddings are computed once on device on first run and cached in IndexedDB (`item_vecs`), ~100 items × 384 floats.
 
 ## 4. LLM: request → filters
@@ -170,29 +178,30 @@ Settings: `temperature: 0`, `max_tokens: 120`, WebLLM `response_format: { type: 
 - `chains` set and chain not in it
 
 ### 5.2 Score (each sub-score normalized 0–1)
+Code: `explore()` in `src/lib/rank/explore.ts`.
 ```
-cheap   = 1 - price / budget                          (leftover money)
+cheap   = 1 - total / budget                          (leftover money)
 fast    = 1 - min(eta_min, 30) / 30
-          eta_min = travel_min + branch.base_wait_minutes + max(prep_minutes)
-          travel_min = distance_km * 1.3 * 12   (road factor 1.3, walking ~5 km/h)
+          eta_min  = walk_min + wait_min
+          walk_min = distance_km * 1.3 * 12             (road factor 1.3, walking ~5 km/h), min 1
+          wait_min = chain avg_wait[meal period] (+ peak bump at 11:30–13:30, 18:00–20:00);
+                     falls back to branch.base_wait_minutes
 near    = 1 - min(distance_km, 5) / 5
 filling = min(sum(fill_score) / (target_fill * people), 1)
           target_fill = low 2, normal 3, high 5
-taste   = 0.7 * cosine(taste.vector, item_vec) mapped to 0–1
-        + 0.3 * (craving tag match ? 1 : 0)
-        + 0.1 bonus if favorite chain (cap 1)
+taste   = 0.7 * affinity + 0.3 * (craving match ? 1 : 0) + 0.1 favorite chain + up to 0.1 chain habit (cap 1)
+          affinity = tag counts + favorite foods (v0); cosine(taste.vector, combo vector) once embeddings load
 
 score = Σ w_k * sub_k
 ```
-**Weights from priority ranking:** priority order `[1st, 2nd, 3rd, 4th]` gets `[0.30, 0.22, 0.15, 0.10]`; `taste` is fixed at `0.23`. Sum = 1.0.
+**Weights from "Unahin" (tap order):** 1st `0.40`, 2nd `0.30`, 3rd `0.20`, 4th `0.10`, 5th `0.05`, over `cheap | fast | near | filling | taste`. Unselected factors get 0, except `taste` keeps `0.05` as a tiebreak. Nothing selected → cheap/fast/near/filling `0.25` each. Default Unahin = `prefs.priority`.
 
 **Request overrides** (applied then re-normalized to sum 1):
-- `urgency high` → `fast × 2`; `urgency low` → `fast × 0.5`
-- `max_distance_km ≤ 1` → `near × 1.5`
-- `hunger high` → `filling × 2`
+- `urgency high` → `fast × 2` (min 0.05 first); `urgency low` → `fast × 0.5`
+- `hunger high` → `filling × 2` (min 0.05 first)
 - `cravings` not empty → `taste × 1.5`
 
-Return the best result + 2 alternatives, max one result per branch for variety.
+**Output:** every passing combo, one card per meal (same items) at its best-scoring branch, with a count of other branches. Sorted by score (or the user's sort: cheapest, nearest, fastest, most filling). The first card is the **best pick**. When nothing passes, the engine returns `notes` explaining why (budget too low, all closed, nothing within distance, group too big).
 
 ## 6. Combo builder
 Candidates per open branch are built from that chain's items:

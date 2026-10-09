@@ -7,7 +7,7 @@ const SEAFOOD = ["seafood", "fish", "shrimp", "bangus"];
 /** True if the item hits anything in `avoid` (SPEC §5.1). */
 export function isAvoided(item: CatalogItem, avoid: string[]): boolean {
   return avoid.some((a) => {
-    if (a === "pork") return item.contains_pork || item.protein === "pork";
+    if (a === "pork") return item.contains_pork !== false || item.protein === "pork";
     if (a === "spicy") return item.spicy;
     if (a === "seafood") return SEAFOOD.includes(item.protein ?? "") || item.tags.some((t) => SEAFOOD.includes(t));
     return item.protein === a || item.tags.includes(a);

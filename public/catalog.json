@@ -22,7 +22,8 @@
    "serves": 1,
    "desc": "Crispy fried chicken with rice and gravy",
    "food_type": "chicken",
-   "includes": "Crispy fried chicken with rice and gravy. May kasamang kanin."
+   "includes": "Crispy fried chicken with rice and gravy. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "jb-2-pc-chickenjoy-with-rice",
@@ -43,7 +44,8 @@
    "serves": 1,
    "desc": "Two pieces of crispy fried chicken with rice",
    "food_type": "chicken",
-   "includes": "Two pieces of crispy fried chicken with rice. May kasamang kanin."
+   "includes": "Two pieces of crispy fried chicken with rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "jb-jolly-spaghetti",
@@ -65,7 +67,8 @@
    "serves": 1,
    "desc": "Sweet-style spaghetti with hotdog slices",
    "food_type": "pasta",
-   "includes": "Sweet-style spaghetti with hotdog slices."
+   "includes": "Sweet-style spaghetti with hotdog slices.",
+   "breakfast_only": false
   },
   {
    "id": "jb-chickenjoy-with-jolly-spaghetti",
@@ -87,7 +90,8 @@
    "serves": 1,
    "desc": "Chickenjoy plus Jolly Spaghetti",
    "food_type": "pasta",
-   "includes": "Chickenjoy plus Jolly Spaghetti. May kasamang kanin."
+   "includes": "Chickenjoy plus Jolly Spaghetti. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "jb-yumburger",
@@ -107,7 +111,8 @@
    "serves": 1,
    "desc": "Classic small beef burger",
    "food_type": "burger",
-   "includes": "Classic small beef burger."
+   "includes": "Classic small beef burger.",
+   "breakfast_only": false
   },
   {
    "id": "jb-burger-steak-with-rice",
@@ -129,7 +134,8 @@
    "serves": 1,
    "desc": "Beef patty with mushroom gravy and rice",
    "food_type": "rice meal",
-   "includes": "Beef patty with mushroom gravy and rice. May kasamang kanin."
+   "includes": "Beef patty with mushroom gravy and rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "jb-palabok-fiesta",
@@ -150,7 +156,8 @@
    "serves": 1,
    "desc": "Rice noodles with shrimp sauce and toppings",
    "food_type": "pasta",
-   "includes": "Rice noodles with shrimp sauce and toppings."
+   "includes": "Rice noodles with shrimp sauce and toppings.",
+   "breakfast_only": false
   },
   {
    "id": "jb-jolly-crispy-fries",
@@ -169,7 +176,8 @@
    "serves": 1,
    "desc": "Regular fries",
    "food_type": "snack",
-   "includes": "Regular fries."
+   "includes": "Regular fries.",
+   "breakfast_only": false
   },
   {
    "id": "jb-coke-regular",
@@ -189,7 +197,8 @@
    "serves": 1,
    "desc": "Regular softdrink",
    "food_type": "drink",
-   "includes": "Regular softdrink."
+   "includes": "Regular softdrink.",
+   "breakfast_only": false
   },
   {
    "id": "jb-peach-mango-pie",
@@ -210,7 +219,8 @@
    "serves": 1,
    "desc": "Fried pie with peach-mango filling",
    "food_type": "dessert",
-   "includes": "Fried pie with peach-mango filling."
+   "includes": "Fried pie with peach-mango filling.",
+   "breakfast_only": false
   },
   {
    "id": "jb-chickenjoy-bucket-6-pc",
@@ -231,7 +241,8 @@
    "serves": 4,
    "desc": "Six pieces of Chickenjoy for sharing",
    "food_type": "chicken",
-   "includes": "Good for 4. Six pieces of Chickenjoy for sharing"
+   "includes": "Good for 4. Six pieces of Chickenjoy for sharing",
+   "breakfast_only": false
   },
   {
    "id": "mc-1-pc-chicken-mcdo-with-rice",
@@ -252,7 +263,8 @@
    "serves": 1,
    "desc": "Fried chicken with rice",
    "food_type": "chicken",
-   "includes": "Fried chicken with rice. May kasamang kanin."
+   "includes": "Fried chicken with rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "mc-mcspaghetti",
@@ -272,7 +284,8 @@
    "serves": 1,
    "desc": "Spaghetti with meat sauce",
    "food_type": "pasta",
-   "includes": "Spaghetti with meat sauce."
+   "includes": "Spaghetti with meat sauce.",
+   "breakfast_only": false
   },
   {
    "id": "mc-burger-mcdo",
@@ -292,7 +305,8 @@
    "serves": 1,
    "desc": "Small beef burger",
    "food_type": "burger",
-   "includes": "Small beef burger."
+   "includes": "Small beef burger.",
+   "breakfast_only": false
   },
   {
    "id": "mc-cheeseburger",
@@ -313,7 +327,8 @@
    "serves": 1,
    "desc": "Beef burger with cheese",
    "food_type": "burger",
-   "includes": "Beef burger with cheese."
+   "includes": "Beef burger with cheese.",
+   "breakfast_only": false
   },
   {
    "id": "mc-big-mac",
@@ -333,7 +348,8 @@
    "serves": 1,
    "desc": "Two beef patties, special sauce",
    "food_type": "burger",
-   "includes": "Two beef patties, special sauce."
+   "includes": "Two beef patties, special sauce.",
+   "breakfast_only": false
   },
   {
    "id": "mc-mccrispy-chicken-fillet-with-rice",
@@ -354,7 +370,8 @@
    "serves": 1,
    "desc": "Chicken fillet with rice and gravy",
    "food_type": "chicken",
-   "includes": "Chicken fillet with rice and gravy. May kasamang kanin."
+   "includes": "Chicken fillet with rice and gravy. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "mc-fries-medium",
@@ -373,7 +390,8 @@
    "serves": 1,
    "desc": "Medium fries",
    "food_type": "snack",
-   "includes": "Medium fries."
+   "includes": "Medium fries.",
+   "breakfast_only": false
   },
   {
    "id": "mc-coke-medium",
@@ -393,7 +411,8 @@
    "serves": 1,
    "desc": "Medium softdrink",
    "food_type": "drink",
-   "includes": "Medium softdrink."
+   "includes": "Medium softdrink.",
+   "breakfast_only": false
   },
   {
    "id": "mc-mcflurry-oreo",
@@ -414,7 +433,8 @@
    "serves": 1,
    "desc": "Soft serve with Oreo",
    "food_type": "dessert",
-   "includes": "Soft serve with Oreo."
+   "includes": "Soft serve with Oreo.",
+   "breakfast_only": false
   },
   {
    "id": "mc-chicken-mcdo-6-pc-bucket",
@@ -435,7 +455,8 @@
    "serves": 4,
    "desc": "Six pieces of Chicken McDo",
    "food_type": "chicken",
-   "includes": "Good for 4. Six pieces of Chicken McDo"
+   "includes": "Good for 4. Six pieces of Chicken McDo",
+   "breakfast_only": false
   },
   {
    "id": "mi-paa-large-with-rice-pm1",
@@ -458,7 +479,8 @@
    "serves": 1,
    "desc": "Grilled chicken leg quarter with unli-rice",
    "food_type": "chicken",
-   "includes": "Grilled chicken leg quarter with unli-rice. May kasamang kanin."
+   "includes": "Grilled chicken leg quarter with unli-rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "mi-pecho-large-with-rice-pm2",
@@ -481,7 +503,8 @@
    "serves": 1,
    "desc": "Grilled chicken breast with unli-rice",
    "food_type": "chicken",
-   "includes": "Grilled chicken breast with unli-rice. May kasamang kanin."
+   "includes": "Grilled chicken breast with unli-rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "mi-pork-bbq-2-sticks-with-rice",
@@ -504,7 +527,8 @@
    "serves": 1,
    "desc": "Two pork barbecue sticks with unli-rice",
    "food_type": "rice meal",
-   "includes": "Two pork barbecue sticks with unli-rice. May kasamang kanin."
+   "includes": "Two pork barbecue sticks with unli-rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "mi-pork-sisig-with-rice",
@@ -527,7 +551,8 @@
    "serves": 1,
    "desc": "Sizzling pork sisig with unli-rice",
    "food_type": "sisig",
-   "includes": "Sizzling pork sisig with unli-rice. May kasamang kanin."
+   "includes": "Sizzling pork sisig with unli-rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "mi-bangus-sisig-with-rice",
@@ -550,7 +575,8 @@
    "serves": 1,
    "desc": "Milkfish sisig with unli-rice",
    "food_type": "sisig",
-   "includes": "Milkfish sisig with unli-rice. May kasamang kanin."
+   "includes": "Milkfish sisig with unli-rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "mi-palabok-solo",
@@ -570,7 +596,8 @@
    "serves": 1,
    "desc": "Rice noodles in shrimp sauce",
    "food_type": "pasta",
-   "includes": "Rice noodles in shrimp sauce."
+   "includes": "Rice noodles in shrimp sauce.",
+   "breakfast_only": false
   },
   {
    "id": "mi-halo-halo-regular",
@@ -591,7 +618,8 @@
    "serves": 1,
    "desc": "Shaved ice with sweet beans and leche flan",
    "food_type": "dessert",
-   "includes": "Shaved ice with sweet beans and leche flan."
+   "includes": "Shaved ice with sweet beans and leche flan.",
+   "breakfast_only": false
   },
   {
    "id": "mi-iced-tea-regular",
@@ -611,7 +639,8 @@
    "serves": 1,
    "desc": "House blend iced tea",
    "food_type": "drink",
-   "includes": "House blend iced tea."
+   "includes": "House blend iced tea.",
+   "breakfast_only": false
   },
   {
    "id": "mi-extra-rice",
@@ -630,7 +659,8 @@
    "serves": 1,
    "desc": "Additional cup of rice",
    "food_type": "rice meal",
-   "includes": "Additional cup of rice."
+   "includes": "Additional cup of rice.",
+   "breakfast_only": false
   },
   {
    "id": "mi-family-fiesta-4-pax",
@@ -653,7 +683,8 @@
    "serves": 4,
    "desc": "Four chicken inasal with unli-rice, sharing",
    "food_type": "chicken",
-   "includes": "Good for 4. Four chicken inasal with unli-rice, sharing"
+   "includes": "Good for 4. Four chicken inasal with unli-rice, sharing",
+   "breakfast_only": false
   },
   {
    "id": "ck-chao-fan-with-siomai",
@@ -674,7 +705,8 @@
    "serves": 1,
    "desc": "Pork chao fan with 2 pcs siomai",
    "food_type": "snack",
-   "includes": "Pork chao fan with 2 pcs siomai. May kasamang kanin."
+   "includes": "Pork chao fan with 2 pcs siomai. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "ck-beef-chao-fan",
@@ -695,7 +727,8 @@
    "serves": 1,
    "desc": "Beef fried rice",
    "food_type": "rice meal",
-   "includes": "Beef fried rice. May kasamang kanin."
+   "includes": "Beef fried rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "ck-sweet-and-sour-pork-lauriat",
@@ -717,7 +750,8 @@
    "serves": 1,
    "desc": "Sweet & sour pork with chao fan, siomai and buchi",
    "food_type": "rice meal",
-   "includes": "Sweet & sour pork with chao fan, siomai and buchi. May kasamang kanin."
+   "includes": "Sweet & sour pork with chao fan, siomai and buchi. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "ck-chinese-style-fried-chicken-with-rice",
@@ -738,7 +772,8 @@
    "serves": 1,
    "desc": "Fried chicken Chinese-style with rice",
    "food_type": "chicken",
-   "includes": "Fried chicken Chinese-style with rice. May kasamang kanin."
+   "includes": "Fried chicken Chinese-style with rice. May kasamang kanin.",
+   "breakfast_only": false
   },
   {
    "id": "ck-beef-wonton-mami",
@@ -760,7 +795,8 @@
    "serves": 1,
    "desc": "Noodle soup with beef and wonton",
    "food_type": "noodles",
-   "includes": "Noodle soup with beef and wonton."
+   "includes": "Noodle soup with beef and wonton.",
+   "breakfast_only": false
   },
   {
    "id": "ck-siopao-asado",
@@ -780,7 +816,8 @@
    "serves": 1,
    "desc": "Steamed bun with sweet pork filling",
    "food_type": "snack",
-   "includes": "Steamed bun with sweet pork filling."
+   "includes": "Steamed bun with sweet pork filling.",
+   "breakfast_only": false
   },
   {
    "id": "ck-siomai-4-pcs",
@@ -800,7 +837,8 @@
    "serves": 1,
    "desc": "Steamed pork dumplings",
    "food_type": "snack",
-   "includes": "Steamed pork dumplings."
+   "includes": "Steamed pork dumplings.",
+   "breakfast_only": false
   },
   {
    "id": "ck-halo-halo-supreme",
@@ -821,7 +859,8 @@
    "serves": 1,
    "desc": "Chowking's halo-halo",
    "food_type": "dessert",
-   "includes": "Chowking's halo-halo."
+   "includes": "Chowking's halo-halo.",
+   "breakfast_only": false
   },
   {
    "id": "ck-iced-tea-regular",
@@ -841,7 +880,8 @@
    "serves": 1,
    "desc": "Iced tea",
    "food_type": "drink",
-   "includes": "Iced tea."
+   "includes": "Iced tea.",
+   "breakfast_only": false
   },
   {
    "id": "ck-chao-fan-family-platter",
@@ -862,7 +902,8 @@
    "serves": 4,
    "desc": "Chao fan platter good for 4",
    "food_type": "snack",
-   "includes": "Good for 4. Chao fan platter good for 4"
+   "includes": "Good for 4. Chao fan platter good for 4",
+   "breakfast_only": false
   }
  ],
  "branches": [

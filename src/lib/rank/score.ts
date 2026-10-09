@@ -2,7 +2,7 @@
 import type { Catalog, CatalogItem, Combo, Prefs, Result, SubScores, TasteProfile } from "@/lib/types";
 import type { ResolvedFilters } from "@/lib/parse/validate";
 import { buildCombos } from "./combos";
-import { distanceKm, isOpen, travelMinutes, type LatLng } from "./distance";
+import { distanceKm, isAvailable, isOpen, travelMinutes, type LatLng } from "./distance";
 import { templateReason } from "./reason";
 
 const RANK_WEIGHTS = [0.3, 0.22, 0.15, 0.1];
@@ -68,7 +68,7 @@ function rankOnce({ catalog, filters: f, prefs, taste, here, now = new Date() }:
     if (f.chains.length && !f.chains.includes(branch.chain)) continue;
     const distance_km = distanceKm(here, branch);
     if (distance_km > maxKm) continue;
-    const menu = catalog.items.filter((i) => i.chain === branch.chain);
+    const menu = catalog.items.filter((i) => i.chain === branch.chain && isAvailable(i, now));
     for (const items of buildCombos(menu, f)) {
       const total = items.reduce((s, i) => s + i.price, 0);
       const eta_min = Math.round(travelMinutes(distance_km) + branch.base_wait_minutes + Math.max(...items.map((i) => i.prep_minutes)));
