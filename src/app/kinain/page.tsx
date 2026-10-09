@@ -1,16 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useMemo } from "react";
 import { useApp } from "@/components/app-data";
-import { AppShell } from "@/components/app-shell";
+import { AppShell, SectionTitle } from "@/components/app-shell";
 import { RatingButtons } from "@/components/rating";
 import { EmptyNote } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MiniFoodCard } from "@/components/food";
 import { CHAIN_COLORS, CHAIN_NAMES, catalog } from "@/lib/catalog";
 import type { HistoryEntry } from "@/lib/store/history";
 import { cn } from "@/lib/utils";
 import { branchName } from "@/components/visuals";
+import type { CatalogItem } from "@/lib/types";
 
 function dayLabel(iso: string) {
   const d = new Date(iso);
@@ -21,9 +24,21 @@ function dayLabel(iso: string) {
   return d.toLocaleDateString("fil-PH", { weekday: "long", month: "short", day: "numeric" });
 }
 
+function Carousel({ children }: { children: React.ReactNode }) {
+  return <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-1">{children}</div>;
+}
+
+const itemsFromIds = (ids: string[]) => ids.map((id) => catalog.items.find((i) => i.id === id)).filter((i): i is CatalogItem => !!i);
+
 export default function Kinain() {
   const router = useRouter();
   const { ready, history, openDetail } = useApp();
+
+  const recent = useMemo(() => {
+    const seen = new Set<string>();
+    return history.filter((h) => (seen.has(h.item_ids.join("+")) ? false : (seen.add(h.item_ids.join("+")), true))).slice(0, 10);
+  }, [history]);
+
   const groups = new Map<string, HistoryEntry[]>();
   for (const h of history) {
     const k = dayLabel(h.at);
@@ -34,13 +49,29 @@ export default function Kinain() {
     <AppShell>
       <div className="flex flex-col gap-5 py-2">
         <h1 className="text-[32px]">Kinain</h1>
+
+        {/* Huling kinain mo section */}
+        <section className="flex flex-col gap-3">
+          <SectionTitle>Huling kinain mo</SectionTitle>
+          {recent.length === 0 ? (
+            <EmptyNote>Wala pa. Hanap na tayo!</EmptyNote>
+          ) : (
+            <Carousel>
+              {recent.map((h) => {
+                const items = itemsFromIds(h.item_ids);
+                return items.length ? <MiniFoodCard key={h.id} items={items} sub={h.branch_name.replace(/\s*\(mock\)/gi, "")} /> : null;
+              })}
+            </Carousel>
+          )}
+        </section>
+
         {!ready ? (
           <div className="flex flex-col gap-3">
             <Skeleton className="h-28 rounded-[24px]" />
             <Skeleton className="h-28 rounded-[24px]" />
           </div>
         ) : history.length === 0 ? (
-          <EmptyNote action={{ label: "Kahit Saan", onClick: () => router.push("/kahit-saan") }}>Wala ka pang kinain dito. Pag nag-&quot;Ito na!&quot; ka, lalabas dito.</EmptyNote>
+          <EmptyNote>Wala ka pang kinain dito. Pag nag-&quot;Ito na!&quot; ka, lalabas dito.</EmptyNote>
         ) : (
           [...groups.entries()].map(([day, list]) => (
             <section key={day} className="flex flex-col gap-2">
