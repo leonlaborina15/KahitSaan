@@ -66,6 +66,13 @@ export async function addNope(itemId: string): Promise<void> {
   await set("nope", map);
 }
 
+/** Undo an "Ayoko nito" before it expires. */
+export async function removeNope(itemId: string): Promise<void> {
+  const map = (await get<Record<string, number>>("nope")) ?? {};
+  delete map[itemId];
+  await set("nope", map);
+}
+
 export async function loadNope(): Promise<Set<string>> {
   const map = (await get<Record<string, number>>("nope")) ?? {};
   return new Set(Object.entries(map).filter(([, until]) => until > Date.now()).map(([id]) => id));

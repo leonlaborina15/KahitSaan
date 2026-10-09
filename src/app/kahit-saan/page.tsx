@@ -136,7 +136,7 @@ export default function KahitSaan() {
                         animate={{ rotateX: 0, opacity: 1 }}
                         exit={{ rotateX: -90, opacity: 0 }}
                         transition={{ duration: 0.1 }}
-                        className="mx-auto flex h-20 max-w-[300px] items-center justify-center rounded-[20px] bg-white/95 px-4 text-center font-display text-xl font-bold text-foreground shadow-lg"
+                        className="mx-auto flex h-20 max-w-[300px] items-center justify-center rounded-[20px] bg-card px-4 text-center font-display text-xl font-bold text-foreground shadow-lg"
                       >
                         {flip || "…"}
                       </motion.div>

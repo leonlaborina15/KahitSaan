@@ -1,8 +1,10 @@
 "use client";
 
 import { Heart, MagnifyingGlass, Microphone, Shuffle, Sparkle, Wallet, X, ClockCounterClockwise } from "@phosphor-icons/react";
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { useApp } from "@/components/app-data";
 import { runSearch } from "@/lib/engine";
 import { filtersFromRequest } from "@/lib/parse/filters";
@@ -23,6 +25,8 @@ import { DEFAULT_PREFS } from "@/lib/store/db";
 import type { CatalogItem, MealPeriod } from "@/lib/types";
 
 const QUICK = ["₱100 lang", "Gutom na gutom", "Bilis!", "Malapit lang", "Kaming 4", "Chicken"];
+const PROMPTS = ["₱150 lang, gutom na…", "kaming 4 sa Jollibee…", "bawal baboy, malapit lang…", "₱100 pababa, bilis!", "chicken, 'yung malapit"];
+const PROMPT_MS = 2600;
 const GREETING: Record<MealPeriod, string> = {
   breakfast: "Almusal time!",
   lunch: "Tanghalian na!",
@@ -41,6 +45,25 @@ function greetingPeriod(now: Date): MealPeriod {
 
 function Carousel({ children }: { children: React.ReactNode }) {
   return <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-1">{children}</div>;
+}
+
+/** Rotating example prompts shown inside the empty search box. */
+function CyclingPlaceholder() {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setI((x) => (x + 1) % PROMPTS.length), PROMPT_MS);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <span className="pointer-events-none absolute left-3 top-3.5 flex items-center gap-2 text-base text-muted-foreground" aria-hidden>
+      <Sparkle size={18} weight="fill" className="shrink-0 text-ube" />
+      <AnimatePresence mode="wait">
+        <motion.span key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}>
+          {PROMPTS[i]}
+        </motion.span>
+      </AnimatePresence>
+    </span>
+  );
 }
 
 function StatTile({ Icon, value, label, onClick }: { Icon: typeof Wallet; value: string; label: string; onClick?: () => void }) {
@@ -117,7 +140,7 @@ export default function Home() {
           </section>
         )}
 
-        {/* Bento: meal-time hero */}
+        {/* Hero: time-aware greeting on gradient + glowing search bar */}
         <section
           className="relative overflow-hidden rounded-[28px] p-5 text-white shadow-[var(--shadow-raised)]"
           style={{ background: "linear-gradient(135deg, #C93A20 0%, #E2482C 45%, #F2802C 100%)" }}
@@ -131,57 +154,70 @@ export default function Home() {
             </div>
             <Kanin mood="hungry" size={84} bob className="-mr-1 -mt-1" />
           </div>
+
+          {/* Glowing search bar: rotating conic ring + cycling prompts + pulsing mic */}
+          <div className="glow-ring relative mt-4 rounded-[22px] p-[2px]">
+            <div className="relative rounded-[20px] bg-card">
+              <label htmlFor="request" className="sr-only">Ano&apos;ng hanap mo?</label>
+              <Textarea
+                id="request"
+                value={text}
+                onChange={(e) => setText(e.target.value)}
+                placeholder=""
+                className="min-h-[104px] resize-none rounded-[20px] border-0 bg-transparent pl-3 pr-2 pt-3.5 text-base shadow-none focus-visible:ring-0"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    search();
+                  }
+                }}
+              />
+              {!text && <CyclingPlaceholder />}
+              <span className="absolute bottom-2 right-2 flex items-center gap-1.5">
+                <button
+                  type="button"
+                  aria-label="Voice input, soon"
+                  onClick={() => toast("Voice input — malapit na!")}
+                  className="animate-mic-ping flex size-11 items-center justify-center rounded-full bg-surface-2 text-mangga"
+                >
+                  <Microphone size={20} weight="fill" aria-hidden />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Hanapin"
+                  onClick={search}
+                  className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                >
+                  <MagnifyingGlass size={20} weight="bold" aria-hidden />
+                </button>
+              </span>
+            </div>
+          </div>
+
+          <div className="no-scrollbar -mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1">
+            {QUICK.map((q, i) => (
+              <motion.button
+                key={q}
+                type="button"
+                initial={{ opacity: 0, y: 12, scale: 0.92 }}
+                animate={{ opacity: 1, y: 0, scale: 1, transition: { delay: 0.3 + i * 0.06, type: "spring", stiffness: 400, damping: 22 } }}
+                onClick={() => setText((t) => (t.trim() ? `${t.trim()}, ${q}` : q))}
+                className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-white/12 px-4 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/20"
+              >
+                + {q}
+              </motion.button>
+            ))}
+          </div>
+
           <Button
             size="lg"
-            className="relative mt-4 h-14 w-full rounded-[16px] bg-white font-display text-lg text-primary ring-4 ring-mangga hover:bg-white/95"
+            className="relative mt-3 h-14 w-full rounded-[16px] bg-white font-display text-lg text-primary ring-4 ring-mangga hover:bg-white/95"
             onClick={() => {
               buzz();
               router.push("/kahit-saan");
             }}
           >
             <Shuffle size={22} weight="bold" aria-hidden /> Kahit Saan
-          </Button>
-        </section>
-
-        {/* Bento: search */}
-        <section className="flex flex-col gap-3 rounded-[28px] border bg-card p-3 shadow-[var(--shadow-soft)]">
-          <div className="relative">
-            <label htmlFor="request" className="sr-only">Ano&apos;ng hanap mo?</label>
-            <Sparkle size={18} weight="fill" className="pointer-events-none absolute left-3 top-3.5 text-ube" aria-label="AI" />
-            <Textarea
-              id="request"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Ano'ng gusto mo? Hal. ₱150 lang, gutom na gutom, ayoko ng matagal"
-              className="min-h-28 resize-none rounded-[20px] border-0 bg-surface-2 pl-9 pr-14 pt-3 text-base shadow-none"
-              onKeyDown={(e) => {
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  search();
-                }
-              }}
-            />
-            <span className="group absolute bottom-2 right-2">
-              <button type="button" disabled aria-label="Voice input, soon" className="flex size-11 items-center justify-center rounded-full bg-card text-muted-foreground opacity-60">
-                <Microphone size={20} aria-hidden />
-              </button>
-              <span className="pointer-events-none absolute -top-8 right-0 rounded-md bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity group-hover:opacity-100">Soon</span>
-            </span>
-          </div>
-          <div className="no-scrollbar -mx-3 flex gap-2 overflow-x-auto px-3">
-            {QUICK.map((q) => (
-              <button
-                key={q}
-                type="button"
-                onClick={() => setText((t) => (t.trim() ? `${t.trim()}, ${q}` : q))}
-                className="inline-flex min-h-11 shrink-0 items-center rounded-full border bg-card px-4 text-sm font-semibold hover:border-brand/50"
-              >
-                + {q}
-              </button>
-            ))}
-          </div>
-          <Button size="lg" className="h-12 w-full text-base" onClick={search}>
-            <MagnifyingGlass size={20} weight="bold" aria-hidden /> Hanapin
           </Button>
         </section>
 
