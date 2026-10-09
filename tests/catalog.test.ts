@@ -21,6 +21,8 @@ describe("catalog.json matches SPEC §3", () => {
       expect(Number.isInteger(i.price) && i.price > 0, i.id).toBe(true);
       expect(i.serves).toBeGreaterThanOrEqual(1);
       expect(i.prep_minutes).toBeGreaterThan(0);
+      expect([true, false, "unknown"]).toContain(i.contains_pork);
+      expect(typeof i.breakfast_only, i.id).toBe("boolean");
     }
   });
 

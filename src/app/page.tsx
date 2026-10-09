@@ -3,7 +3,9 @@
 import { Heart, MagnifyingGlass, Microphone, Shuffle, Sparkle, Wallet, X, ClockCounterClockwise } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { filtersFromRequest, useApp } from "@/components/app-data";
+import { useApp } from "@/components/app-data";
+import { runSearch } from "@/lib/engine";
+import { filtersFromRequest } from "@/lib/parse/filters";
 import { AppShell, SectionTitle, buzz } from "@/components/app-shell";
 import { MiniFoodCard } from "@/components/food";
 import { Kanin } from "@/components/kanin";
@@ -16,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { Welcome } from "@/components/welcome";
 import { catalog } from "@/lib/catalog";
-import { explore, mealPeriod } from "@/lib/rank/explore";
+import { mealPeriod } from "@/lib/rank/explore";
 import { DEFAULT_PREFS } from "@/lib/store/db";
 import type { CatalogItem, MealPeriod } from "@/lib/types";
 
@@ -63,7 +65,7 @@ export default function Home() {
   const suggestions = useMemo(() => {
     if (!prefs || !taste || !place) return null;
     try {
-      return explore({ catalog, filters: filtersFromRequest("", prefs).filters, prefs, taste, here: place }).slice(0, 5);
+      return runSearch(filtersFromRequest("", prefs).filters, { catalog, prefs, taste, here: place }).results.slice(0, 5);
     } catch {
       return [];
     }

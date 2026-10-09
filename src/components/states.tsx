@@ -71,12 +71,12 @@ export function KaninState({
   );
 }
 
-export function EmptyResults({ budget, onRaise, onWiden, onClear }: { budget: number; onRaise: () => void; onWiden?: () => void; onClear?: () => void }) {
+export function EmptyResults({ budget, note, onRaise, onWiden, onClear }: { budget: number; note?: string; onRaise: () => void; onWiden?: () => void; onClear?: () => void }) {
   return (
     <KaninState
       mood="sleepy"
       title={`Walang pasok sa ₱${budget} dito.`}
-      body="Subukan natin ng konting adjust."
+      body={note ?? "Subukan natin ng konting adjust."}
       action={{ label: "Taasan budget", onClick: onRaise }}
       extra={
         <div className="flex w-full flex-col gap-2">

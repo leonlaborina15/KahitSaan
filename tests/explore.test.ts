@@ -1,6 +1,6 @@
 // "Done when" checks for the Results + Kahit Saan logic.
 import { describe, expect, it } from "vitest";
-import { filtersFromRequest } from "@/components/app-data";
+import { filtersFromRequest } from "@/lib/parse/filters";
 import { catalog } from "@/lib/catalog";
 import { explore, isPeak, openStatus, pickWeighted, speedOf, type SortKey } from "@/lib/rank/explore";
 import { DEFAULT_PREFS, EMPTY_TASTE } from "@/lib/store/db";
@@ -148,5 +148,27 @@ describe("stackable filtering (Unahin + quick filters)", () => {
       expect(r.speed).toBe("fast");
       expect(r.items.some((i) => i.tags.includes("rice") || i.name.toLowerCase().includes("rice"))).toBe(true);
     }
+  });
+});
+
+describe("dataset rules (docs/dataset.md)", () => {
+  const meal = catalog.items.find((i) => i.chain === "jollibee" && i.category === "meal" && !i.contains_pork)!;
+  const withItem = (patch: Partial<typeof meal>) => ({ ...catalog, items: catalog.items.map((i) => (i.id === meal.id ? { ...i, ...patch } : i)) });
+  const has = (c: typeof catalog, q: string, now: Date, p = prefs) =>
+    explore({ catalog: c, filters: filtersFromRequest(q, p, now).filters, prefs: p, taste: EMPTY_TASTE, here, now }).some((r) =>
+      r.items.some((i) => i.id === meal.id),
+    );
+  const noPork: Prefs = { ...prefs, avoid_pork: false, dislikes: [] };
+
+  it("contains_pork 'unknown' is hidden when avoiding pork", () => {
+    const c = withItem({ contains_pork: "unknown" });
+    expect(has(c, "", noon, noPork)).toBe(true);
+    expect(has(c, "bawal baboy", noon, noPork)).toBe(false);
+  });
+
+  it("breakfast_only items show only in the breakfast period", () => {
+    const c = withItem({ breakfast_only: true });
+    expect(has(c, "", new Date(2026, 9, 9, 8, 0), noPork)).toBe(true);
+    expect(has(c, "", new Date(2026, 9, 9, 19, 0), noPork)).toBe(false);
   });
 });

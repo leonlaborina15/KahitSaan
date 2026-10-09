@@ -5,7 +5,7 @@ import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-m
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { AiStatusPill, useAiStatus } from "@/components/ai-status";
-import { filtersFromRequest, useApp } from "@/components/app-data";
+import { useApp } from "@/components/app-data";
 import { AppShell } from "@/components/app-shell";
 import { ActiveFilterBar, CLEARED, FiltersSheet, QuickFilters, UnahinRow, UnderstoodChips, activeFilters, applyQuick } from "@/components/filter-chips";
 import { CompactCard, HeroCard } from "@/components/food";
@@ -13,8 +13,10 @@ import { LocationRow } from "@/components/location";
 import { EmptyResults, ErrorState, ResultsSkeleton } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { catalog } from "@/lib/catalog";
+import { runSearch, type SearchOutput } from "@/lib/engine";
+import { filtersFromRequest } from "@/lib/parse/filters";
 import { parseRules } from "@/lib/parse/rules";
-import { explore, type ExploreFilters, type ItemResult } from "@/lib/rank/explore";
+import type { ExploreFilters } from "@/lib/rank/explore";
 import { cn } from "@/lib/utils";
 
 const MAX_SHOWN = 11; // best pick + up to 10 more
@@ -75,16 +77,18 @@ function ResultsInner() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailId, place]);
 
-  const run = (f: ExploreFilters): ItemResult[] | "error" => {
-    if (!prefs || !taste || !place) return [];
+  const run = (f: ExploreFilters): SearchOutput | "error" => {
+    if (!prefs || !taste || !place) return { results: [], notes: [] };
     try {
-      return explore({ catalog, filters: f, prefs, taste, here: place });
+      return runSearch(f, { catalog, prefs, taste, here: place });
     } catch {
       return "error";
     }
   };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const results = useMemo(() => (filters ? run(filters) : null), [filters, prefs, taste, place, retry]);
+  const out = useMemo(() => (filters ? run(filters) : null), [filters, prefs, taste, place, retry]);
+  const results = out === "error" ? "error" : (out?.results ?? null);
+  const note = out && out !== "error" ? out.notes[0] : undefined;
   const set = (p: Partial<ExploreFilters>) => setFilters((f) => (f ? { ...f, ...p } : f));
 
   if (ready && !prefs) {
@@ -173,6 +177,7 @@ function ResultsInner() {
             ) : results && results.length === 0 ? (
               <EmptyResults
                 budget={filters.budget}
+                note={note?.text}
                 onRaise={() => set({ budget: filters.budget + 50 })}
                 onWiden={filters.max_distance_km !== null ? () => set({ max_distance_km: null }) : undefined}
                 onClear={() => set({ ...CLEARED, open_only: true, avoid: filters.avoid })}
@@ -210,7 +215,7 @@ function ResultsInner() {
               defaults={initial.filters}
               countFor={(f) => {
                 const r = run(f);
-                return r === "error" ? 0 : r.length;
+                return r === "error" ? 0 : r.results.length;
               }}
               onApply={setFilters}
             />
