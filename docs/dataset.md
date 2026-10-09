@@ -32,7 +32,7 @@ Field names below match `src/lib/types.ts` and SPEC.md §3. Change SPEC.md first
 History, Saved and taste memory store item and branch ids on the phone. If an id changes, users lose that memory.
 - Set the id once when the row is created. Never regenerate it, even if the name or price changes.
 - Format: `<chain-prefix>-<slug-of-name>`, lowercase, words joined by `-`.
-- Chain prefixes: `jb` (jollibee), `mcd` (mcdonalds), `mi` (mang-inasal), `ck` (chowking).
+- Chain prefixes: `jb` (jollibee), `mc` (mcdonalds), `mi` (mang-inasal), `ck` (chowking).
 - Examples: `jb-1-pc-chickenjoy-with-rice`, `mi-pm1-paa-large`, `jb-sm-cabanatuan` (branch), `sm-cabanatuan` (landmark).
 
 ---
@@ -97,7 +97,7 @@ One row per item per chain. Items are chain-wide (same menu at every branch). Ta
 | `protein` | `chicken` / `beef` / `pork` / `fish` / `seafood` / `mixed` / `none` | Hand-labeled | Yes | Avoid filter ("bawal baka"). |
 | `contains_pork` | `true` / `false` / `unknown` | Hand-labeled | Yes | Pork filter. `unknown` is treated as pork when the user avoids pork, so nothing slips through. |
 | `spicy` | true / false | Hand-labeled | Yes | "Ayoko ng maanghang". |
-| `fill_score` | 1–5 (rubric below) | Hand-labeled | Yes | "Gutom na gutom" ranking. |
+| `fill_score` | 0–5; bundles up to 30 (rubric below) | Hand-labeled | Yes | "Gutom na gutom" ranking. |
 | `prep_minutes` | whole minutes (defaults below) | Hand-labeled | Yes | Speed estimate, added to branch wait. |
 | `food_type` | `chicken` / `burger` / `pasta` / `rice meal` / `noodles` / `sisig` / `snack` / `dessert` / `drink` | Hand-labeled | Yes | Display grouping and the food-type filter. |
 | `breakfast_only` | true / false | Hand-labeled | Yes | Shown only in the breakfast period (05:00–10:00). Stops "breakfast at 9 PM" picks. |
@@ -118,13 +118,14 @@ One row per item per chain. Items are chain-wide (same menu at every branch). Ta
 ### `fill_score` rubric
 | Score | Means | Example |
 |---|---|---|
-| 1 | Snack, not a meal | Drink, sundae, pie |
+| 0 | Doesn't fill you | Drink |
+| 1 | Snack, not a meal | Sundae, pie |
 | 2 | Light | Fries, siomai, burger solo |
 | 3 | Normal solo meal | 1-pc chicken + rice |
 | 4 | Big solo meal | 2-pc chicken + rice, PM with unli-rice |
 | 5 | Very busog | Super meal, 2 mains + rice |
 
-Bundles: score per person (bundle `fill_score` = how full **one** person gets).
+Bundles: **total for the whole group** = per-person score × `serves` (a 4-pax family meal where each gets a big meal = 4 × 4 = 16). The ranker divides by the number of people.
 
 ### `prep_minutes` defaults
 Use these unless you know better: side/drink/dessert **2**, meal/main **4**, grilled or made-to-order (inasal, sizzling) **8**, bundle **6**.
@@ -136,7 +137,7 @@ Tags must be words the parser understands, or cravings never match. The build re
 `chicken` · `beef` · `fish` · `burger` · `fries` · `spaghetti` · `palabok` · `noodles` · `sisig` · `bbq` · `siopao` · `siomai` · `fried rice` · `halo-halo` · `ice cream` · `dessert`
 
 **Detail tags** — optional, help taste matching:
-`rice` · `unli-rice` · `fried` · `grilled` · `sizzling` · `soup` · `sweet` · `pasta` · `pork` · `shrimp` · `cheese` · `hotdog` · `gravy` · `pie` · `bun` · `dumpling` · `drink` · `soda` · `iced tea` · `coffee` · `breakfast` · `bucket` · `inasal` · `burger steak` · `sweet and sour` · `lauriat` · `mami`
+`rice` · `unli-rice` · `fried` · `grilled` · `sizzling` · `soup` · `sweet` · `pasta` · `pork` · `shrimp` · `cheese` · `hotdog` · `gravy` · `pie` · `bun` · `dumpling` · `drink` · `soda` · `iced tea` · `coffee` · `breakfast` · `bucket` · `inasal` · `burger steak` · `sweet and sour` · `lauriat` · `mami` · `fillet` · `bangus`
 
 ---
 
@@ -182,7 +183,7 @@ Protein `none` becomes `null`. Tags become a JSON array.
 | Required fields | No blanks in required columns | Error |
 | Price | Whole number > 0 | Error |
 | Enums | `chain`, `category`, `protein`, `contains_pork`, `food_type` are valid values | Error |
-| Fill | `fill_score` 1–5 | Error |
+| Fill | `fill_score` 0–5; bundles 1–30 | Error |
 | Serves | `1`, or 3–6 when `category = bundle` | Error |
 | Tags | Every tag is on the tag list | Error |
 | Coordinates | Inside Cabanatuan bounds | Error |
@@ -193,13 +194,20 @@ Protein `none` becomes `null`. Tags become a JSON array.
 
 After the build, `npm test` (catalog + ranking tests) must pass before the catalog is committed.
 
+### Commands
+```
+python scraper/build.py --check   # check the sheets, write nothing (run while filling them)
+python scraper/build.py           # check + write public/catalog.json
+npm test
+```
+
 ---
 
 ## 7. Decisions
 
 | Question | Decision |
 |---|---|
-| Budget per person or whole group? | **Whole group total** (SPEC §4.1). "₱100 each, 4 kami" → ₱400. Bundle `fill_score` is per person. |
+| Budget per person or whole group? | **Whole group total** (SPEC §4.1). "₱100 each, 4 kami" → ₱400. Bundle `fill_score` is the group total. |
 | Allow `contains_pork = unknown`? | **Yes.** Treated as pork when the user avoids pork. |
 | How to label estimated wait? | Always `~` before the minutes, plus "tantya" on the card (SPEC §12). |
 | How often to re-check prices and hours? | **Once**, dated 2026-10-09, for the hackathon. The catalog `version` date shows in the app and README. |

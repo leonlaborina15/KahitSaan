@@ -1,0 +1,5 @@
+id,name,color,wait_breakfast,wait_lunch,wait_merienda,wait_dinner,wait_late
+jollibee,Jollibee,#D62300,5,9,5,8,4
+mcdonalds,McDonald's,#FFBC0D,5,8,5,8,4
+mang-inasal,Mang Inasal,#00843D,10,14,9,13,8
+chowking,Chowking,#E35205,6,10,6,9,5

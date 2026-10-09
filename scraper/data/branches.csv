@@ -1,0 +1,3 @@
+id,chain,name,lat,lng,osm_id,open_time,close_time,is_24h,has_drive_thru,base_wait_minutes,exists_on_google_maps,checked_date,label_status
+jb-example-branch,jollibee,Jollibee EXAMPLE (replace me),15.4870,120.9670,node/0,06:00,22:00,false,false,6,true,2026-10-09,needs review
+mc-example-24h,mcdonalds,McDonald's EXAMPLE 24h (replace me),15.4860,120.9700,,,,true,true,5,true,2026-10-09,needs review

@@ -1,0 +1,4 @@
+id,chain,name,price,category,desc,includes,serves,tags,protein,contains_pork,spicy,fill_score,prep_minutes,food_type,breakfast_only,source_url,price_date,label_status
+jb-example-chickenjoy-rice,jollibee,EXAMPLE 1-pc Chickenjoy with Rice,99,meal,Crispy fried chicken with rice and gravy,"1 pc Chickenjoy, rice, gravy",1,chicken|fried|rice|gravy,chicken,false,false,3,4,chicken,false,https://www.jollibee.com.ph/menu,2026-10-09,needs review
+mc-example-longganisa,mcdonalds,EXAMPLE Longganisa Breakfast,105,meal,Sweet pork longganisa with garlic rice and egg,"2 longganisa, rice, egg",1,rice|pork|breakfast,pork,true,false,3,4,rice meal,true,https://www.mcdonalds.com.ph/menu,2026-10-09,needs review
+jb-example-bucket,jollibee,EXAMPLE 6-pc Chickenjoy Bucket,499,bundle,Six pieces of crispy fried chicken for sharing,6 pcs Chickenjoy,4,chicken|fried|bucket,chicken,false,false,14,6,chicken,false,https://www.jollibee.com.ph/menu,2026-10-09,needs review

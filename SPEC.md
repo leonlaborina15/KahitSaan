@@ -65,7 +65,7 @@ Full field rules, tag list and the CSV source sheets: `docs/dataset.md`.
 - `breakfast_only`: shown only in the breakfast period (05:00–10:00).
 - `tags`: only words from the tag list in `docs/dataset.md`, so parser cravings match.
 - `category`: `meal | main | side | drink | dessert | bundle`
-- `fill_score`: 1 (snack) – 5 (very busog). Hand-labeled.
+- `fill_score`: 0 (drink) – 5 (very busog) for one person. Bundles: total for the whole group (e.g. 4 people × 4 = 16). Hand-labeled.
 - `prep_minutes`: estimate. Default by category: side/drink 2, meal 4, grilled/made-to-order 8. Chain base added from branch.
 - `serves`: 1, or 3–6 for bucket/family bundles.
 
