@@ -22,6 +22,7 @@ import { Welcome } from "@/components/welcome";
 import { catalog } from "@/lib/catalog";
 import { mealPeriod } from "@/lib/rank/explore";
 import { DEFAULT_PREFS } from "@/lib/store/db";
+import { loadNope } from "@/lib/store/history";
 import type { CatalogItem, MealPeriod } from "@/lib/types";
 
 const QUICK = ["₱100 lang", "Gutom na gutom", "Bilis!", "Malapit lang", "Kaming 4", "Chicken"];
@@ -83,16 +84,22 @@ export default function Home() {
   const { ready, prefs, setPrefs, taste, place, history, saved, rate } = useApp();
   const [onboarding, setOnboarding] = useState<"welcome" | "setup">("welcome");
   const [text, setText] = useState("");
+  const [noped, setNoped] = useState<Set<string>>(new Set());
   const period = greetingPeriod(new Date());
+
+  // "Ayoko nito" items stay out of the suggestion strip too.
+  useEffect(() => {
+    void loadNope().then(setNoped);
+  }, []);
 
   const suggestions = useMemo(() => {
     if (!prefs || !taste || !place) return null;
     try {
-      return runSearch(filtersFromRequest("", prefs).filters, { catalog, prefs, taste, here: place }).results.slice(0, 5);
+      return runSearch(filtersFromRequest("", prefs).filters, { catalog, prefs, taste, here: place, excludeItems: noped }).results.slice(0, 5);
     } catch {
       return [];
     }
-  }, [prefs, taste, place]);
+  }, [prefs, taste, place, noped]);
 
   const eatenThisWeek = history.filter((h) => Date.now() - Date.parse(h.at) < 7 * 86_400_000).length;
 

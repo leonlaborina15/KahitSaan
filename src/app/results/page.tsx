@@ -19,7 +19,7 @@ import { runSearch, type SearchOutput } from "@/lib/engine";
 import { filtersFromRequest } from "@/lib/parse/filters";
 import { parseRules } from "@/lib/parse/rules";
 import { pickWeighted, type ExploreFilters, type ItemResult } from "@/lib/rank/explore";
-import { addNope, removeNope } from "@/lib/store/history";
+import { addNope, loadNope, removeNope } from "@/lib/store/history";
 import { cn } from "@/lib/utils";
 
 const MAX_SHOWN = 11; // best pick + up to 10 more
@@ -74,6 +74,8 @@ function ResultsInner() {
   const [compact, setCompact] = useState(false);
   const [settling, setSettling] = useState(false);
   const [noped, setNoped] = useState<Set<string>>(new Set());
+  // Items still under "Ayoko nito" (7-day taste memory); hydrated from IndexedDB once.
+  const persistedNope = useRef<Set<string>>(new Set());
   const [order, setOrder] = useState<string[] | null>(null);
   const [rolling, setRolling] = useState(false);
   const [flip, setFlip] = useState("");
@@ -84,7 +86,7 @@ function ResultsInner() {
     const quick = params.get("quick")?.split(",").filter(Boolean) ?? [];
     setFilters((prev) => applyQuick(mergeQuery(prev, initial.filters, q), prev ? [] : quick));
     setDraftQ(q);
-    setNoped(new Set());
+    setNoped(new Set(persistedNope.current));
     setOrder(null);
     if (!reduce) setSettling(true);
   }
@@ -96,6 +98,14 @@ function ResultsInner() {
     return () => clearTimeout(t);
   }, [settling]);
   useEffect(() => () => timers.current.forEach(clearTimeout), []);
+
+  // Hydrate remembered "Ayoko nito" items so they stay excluded across reloads/queries.
+  useEffect(() => {
+    void loadNope().then((s) => {
+      persistedNope.current = new Set([...s, ...persistedNope.current]);
+      setNoped((cur) => new Set([...persistedNope.current, ...cur]));
+    });
+  }, []);
 
   // Header shrinks on scroll.
   useEffect(() => {
@@ -140,12 +150,14 @@ function ResultsInner() {
   const nope = (r: ItemResult) => {
     const main = r.items.find((i) => ["meal", "main", "bundle"].includes(i.category)) ?? r.items[0];
     buzz();
+    persistedNope.current.add(main.id);
     setNoped((s) => new Set(s).add(main.id));
     void addNope(main.id);
     toast(`Tatandaan ko — iiwasan ko muna ang ${main.name}.`, {
       action: {
         label: "Undo",
         onClick: () => {
+          persistedNope.current.delete(main.id);
           setNoped((s) => {
             const n = new Set(s);
             n.delete(main.id);
