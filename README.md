@@ -1,36 +1,51 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Busog Budget
 
-## Getting Started
+**Best fast-food meal near you, for your budget — picked by AI running on your phone.**
+AppBuildersPH Hackathon 2026 · Theme: Local AI
 
-First, run the development server:
+> Draft — finish after feature freeze (TASKS.md #22). Items marked TODO need real values.
 
+## What it does
+Type a request in English or Taglish — *"₱150 lang, gutom na gutom, ayoko ng matagal, malapit lang"* — and get the best meal or combo from nearby Jollibee, McDonald's, Mang Inasal and Chowking branches, with a one-line reason. It learns your taste from what you pick.
+
+## Team
+TODO: names + roles (Frontend, AI/Local model, Data/scraper, Pitch/demo)
+
+## Setup
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev          # http://localhost:3000
+# optional: refresh catalog (needs internet, run once)
+cd scraper && pip install -r requirements.txt && python scrape.py
 ```
+Use Chrome/Edge with WebGPU for the full AI. Other browsers run in Simple mode.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## What runs locally vs what needs internet
+| Runs on device (offline) | Needs internet |
+|---|---|
+| Request parsing (Qwen2.5 1.5B via WebLLM) | First app load |
+| Reason line generation (same LLM) | One-time model download (~1 GB, or ~400 MB small) |
+| Taste matching (MiniLM embeddings via transformers.js) | Opening Google Maps directions (optional) |
+| Ranking, combo building, distance, ETA | Running the scraper (dev only, not the user) |
+| Preferences, taste memory, history (IndexedDB) | |
+| Menu + branch catalog (bundled JSON) | |
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+No AI server. No cloud AI API calls. No account. Your preferences never leave your phone.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Why does this product benefit from running AI locally?
+- **Works where students actually are:** weak mobile data, dead zones, no load. Once installed, it works in airplane mode.
+- **Zero cost per query:** no API bill, so it can stay free for budget-conscious users.
+- **Private:** your budget, eating habits and location never go to a server.
+- **Fast:** no network round-trip; answers come straight from the phone.
 
-## Learn More
+## Known limits
+- Prices and menus are a snapshot dated TODO; service speed is an estimate, not live queue data.
+- Demo area only: TODO.
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Disclosures
+- **Models:** Qwen2.5-1.5B-Instruct (q4f16_1, MLC build) and Qwen2.5-0.5B-Instruct — Apache 2.0; all-MiniLM-L6-v2 (Xenova ONNX port) — Apache 2.0.
+- **Frameworks/libraries:** Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, @mlc-ai/web-llm, @huggingface/transformers, idb-keyval; scraper: Python, requests, BeautifulSoup.
+- **APIs:** none for AI. Browser Geolocation, WebGPU, IndexedDB, Storage API. Google Maps links for directions only.
+- **Data sources:** public websites of Jollibee, McDonald's PH, Mang Inasal, Chowking (TODO: URLs + date); branch locations verified manually on Google Maps.
+- **Existing code:** create-next-app and shadcn/ui templates. TODO: anything else.
+- **AI dev tools:** Claude Code (planning docs and code). TODO: others used by the team.
