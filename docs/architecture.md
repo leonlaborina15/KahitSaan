@@ -13,15 +13,15 @@ Status keys: ✅ exists · ✏️ change · 🆕 build · 🗑 remove
 | Feature | Screen | Engine | Status |
 |---|---|---|---|
 | First-open setup (budget, gusto, iwasan, appetite, unahin, chains) | `components/setup.tsx` | `savePrefs` | ✅ |
-| Type a request in Taglish, or tap a quick chip | Home `app/page.tsx` | `search()` | ✅ UI · 🆕 `search()` |
+| Type a request in Taglish, or tap a quick chip | Home `app/page.tsx` | `parseRequest`, `runSearch` | ✅ |
 | Parsed filters as editable chips | Results, `filter-chips.tsx` | `filtersFromRequest` | ✅ |
 | Best pick + alternatives, each with ₱, km, ~min, reason | Results `app/results/page.tsx` | `explore`, `templateReason` | ✅ |
 | Location: GPS (5 s), else a Cabanatuan landmark | `location.tsx` | `distanceKm` | ✅ |
 | Hide closed branches, breakfast-only items after 10:00, avoided food | — | `isOpen`, `isAvailable`, `isAvoided` | ✅ |
 | "Ito na!" → remembers the pick, opens Google Maps | Confirm sheet | `recordPick`, `addHistory`, `mapsUrl` | ✅ |
 | Taste memory: next search leans to what you pick | — | `tasteScore` | ✅ v0 (tags) · 🆕 embeddings |
-| Explain empty/thin results ("₱20 kulang", "sarado lahat") | Results | `notesFor` | 🆕 |
-| Works in airplane mode | all | service worker | 🆕 |
+| Explain empty results ("Kulang ng ₱55", "sarado lahat") | Results | `notesFor` | ✅ |
+| Works in airplane mode | all | service worker | ✅ (tested: server killed, search works) |
 | AI status pill: "AI handa" / "Downloading 42%" / "Basic mode" | `ai-status.tsx` | `aiStatus` | ✅ static · 🆕 live |
 
 ### Built extras (keep, don't extend)
@@ -81,14 +81,14 @@ public/catalog.json ── bundled into the JS (import) + cached by sw.js ──
 
 ## 3. Function list
 
-### `lib/engine.ts` 🆕 — single entry point
+### `lib/engine.ts` ✅ — single entry point
 | Function | What it does |
 |---|---|
-| `parseRequest(text, prefs, opts) → Promise<Parsed>` 🆕 | Text → filters. Uses `opts.llm` if given (4 s timeout), else / on failure the rule parser. Returns `{ filters, fromSetup, parser: "llm" \| "rules" }`. |
-| `runSearch(filters, ctx) → { results, notes }` 🆕 | Sync. Runs `explore` and `notesFor`. Called again on every chip edit, no parsing. `ctx` = catalog, prefs, taste, here, now, sort, exclude. |
-| `search(text, ctx) → Promise<Parsed & { results, notes }>` 🆕 | Both in one call (Kahit Saan, tests). |
+| `parseRequest(text, prefs, opts) → Promise<Parsed>` ✅ | Text → filters. Uses `opts.llm` if given (4 s timeout), else / on failure the rule parser. Returns `{ filters, fromSetup, parser: "llm" \| "rules" }`. |
+| `runSearch(filters, ctx) → { results, notes }` ✅ | Sync. Runs `explore` and `notesFor`. Called again on every chip edit, no parsing. `ctx` = catalog, prefs, taste, here, now, sort, exclude. |
+| `search(text, ctx) → Promise<Parsed & { results, notes }>` ✅ | Both in one call (Kahit Saan, tests). |
 | `upgradeReasons(request, results) → Promise<string[] \| null>` 🆕 (AI phase) | After results are on screen, asks the LLM for better reasons in one call. `null` = keep templates. UI swaps text in place. |
-| `notesFor(filters, results, ctx) → Note[]` 🆕 | Why results are empty or thin: budget too low (cheapest option + how much more), all closed ("bukas ng 6:00 AM"), nothing within the distance limit, group bigger than any bundle. |
+| `notesFor(input, results) → Note[]` ✅ (`rank/notes.ts`) | Why results are empty: all closed (who opens first), nothing within the distance limit (how many within 5 km), budget too low (cheapest option + how much more, per group), else "filters". |
 
 ### `lib/parse/` — request → filters
 | Function | What it does | Status |
@@ -97,7 +97,7 @@ public/catalog.json ── bundled into the JS (import) + cached by sw.js ──
 | `parseJsonLoose(text) → unknown` | `JSON.parse`, else first `{…}` block. For LLM output. | ✅ |
 | `validateFilters(raw) → Filters` | Keeps valid fields only, defaults the rest (SPEC §4.1). Garbage in → safe filters out. | ✅ |
 | `resolveFilters(f, prefs, now) → ResolvedFilters` | Fills nulls from setup: budget, hunger from appetite, avoid from dislikes + pork, time of day. | ✅ |
-| `filtersFromRequest(text, prefs, now)` | Request + setup → `ExploreFilters` + which chips came from setup. | ✏️ move out of `app-data.tsx` into `parse/filters.ts`; take parsed `Filters` as input so LLM and rules share it |
+| `filtersFromParsed(parsed, prefs, now)` / `filtersFromRequest(text, prefs, now)` | Parsed request (LLM or rules) + setup → `ExploreFilters` + which chips came from setup. | ✅ `parse/filters.ts` |
 
 ### `lib/rank/` — filters → ranked meals
 | Function | What it does | Status |
@@ -118,8 +118,8 @@ public/catalog.json ── bundled into the JS (import) + cached by sw.js ──
 | `comboKey(items)` | Stable key for a combo (sorted item ids). | ✅ |
 | `pickWeighted(list, rand)` | Random pick weighted by score (Kahit Saan). | ✅ |
 | `templateReason(r, w, f)` | "₱139 lang, ~9 min, 0.4 km — sakto sa gutom mo." Non-AI reason. | ✅ |
-| `tasteScore(items, prefs, taste, f, vecs?)` | 0–1 taste match. v0: tag counts + favorites + cravings + chain habit. v1: + cosine(taste vector, combo vector) when vectors exist. | ✏️ move to `rank/taste.ts`, add optional `vecs` |
-| `rank()`, `weights()` in `score.ts` | Older ranker with SPEC §5.2 weights; screens don't use it. | 🗑 (port its tests to `explore`) |
+| `tasteScore(items, prefs, taste, f, vecs?)` | 0–1 taste match. v0: tag counts + favorites + cravings + chain habit. v1: + cosine(taste vector, combo vector) when vectors exist. | ✅ `rank/taste.ts` · 🆕 optional `vecs` (AI phase) |
+| `voteTaste(t, items, ±1)` | Pure tag/chain count update for picks and 👍/👎. | ✅ `rank/taste.ts` |
 
 ### `lib/store/` — IndexedDB (all on the phone)
 | Function | What it does | Status |
@@ -127,7 +127,7 @@ public/catalog.json ── bundled into the JS (import) + cached by sw.js ──
 | `loadPrefs` / `savePrefs` / `clearPrefs` | Setup answers. | ✅ |
 | `loadTaste` / `resetTaste` | Taste profile. | ✅ |
 | `recordPick(items)` | 👍 signal: +1 tag/chain counts, recent picks. | ✅ |
-| `recordVote(items, -1)` | 👎 rating counts against those tags/chain. | 🆕 |
+| `recordVote(items, ±1)` | 👎 rating counts against those tags/chain; changing away from 👎 undoes it. | ✅ |
 | `updateTasteVector(items, vecs)` | `normalize(0.8·v + 0.2·embed(item))` on pick (SPEC §3.4). | 🆕 (AI phase) |
 | `loadPlace` / `savePlace` | Last GPS or landmark. | ✅ |
 | `loadHistory` / `addHistory` / `updateHistory` / `recentlyEaten` | Kinain list (last 200) + ratings. | ✅ |
@@ -153,11 +153,11 @@ public/catalog.json ── bundled into the JS (import) + cached by sw.js ──
 | `cosine(a, b)` | Dot product of normalized vectors. |
 | `prompts.ts`: `PARSE_SYSTEM`, `PARSE_FEWSHOT`, `REASON_SYSTEM`, `parseMessages`, `reasonMessages` | Exact prompt text from SPEC §4.2 and §7. |
 
-### `public/sw.js` + `app/manifest.ts` 🆕 — offline
+### `public/sw.js` + `app/manifest.ts` ✅ — offline
 | Piece | What it does |
 |---|---|
-| `sw.js` install | Precaches app shell, routes, `catalog.json`, icons. |
-| `sw.js` fetch | Cache-first for app files; network-first for page HTML with cache fallback. Never caches model files (WebLLM / transformers.js manage their own cache). |
+| `sw.js` install | Precaches every exported file (list written by `scripts/sw-precache.mjs` after `next build`). Old `kahitsaan-*` caches deleted on update; model caches untouched. |
+| `sw.js` fetch | Cache-first for app files; pages try the network for 3 s, then cache. Same-origin only, so model downloads are never touched. |
 | `manifest.ts` | Name, icons, colors, `display: standalone` → installable on Android. |
 
 ---
