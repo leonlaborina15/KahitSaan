@@ -8,6 +8,10 @@ export const CHAIN_NAMES: Record<ChainId, string> = {
   mcdonalds: "McDonald's",
   "mang-inasal": "Mang Inasal",
   chowking: "Chowking",
+  kfc: "KFC",
+  goldilocks: "Goldilocks",
+  greenwich: "Greenwich",
+  shakeys: "Shakey's",
 };
 
 export const CHAIN_COLORS: Record<ChainId, string> = {
@@ -15,4 +19,8 @@ export const CHAIN_COLORS: Record<ChainId, string> = {
   mcdonalds: "bg-yellow-500",
   "mang-inasal": "bg-green-700",
   chowking: "bg-orange-600",
+  kfc: "bg-red-700",
+  goldilocks: "bg-amber-500",
+  greenwich: "bg-green-700",
+  shakeys: "bg-red-700",
 };

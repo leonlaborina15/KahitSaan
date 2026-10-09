@@ -3,12 +3,12 @@ import catalog from "../public/catalog.json";
 import type { Catalog } from "@/lib/types";
 
 const c = catalog as Catalog;
-const CHAINS = ["jollibee", "mcdonalds", "mang-inasal", "chowking"];
+const CHAINS = ["jollibee", "mcdonalds", "mang-inasal", "chowking", "kfc", "goldilocks", "greenwich", "shakeys"];
 const CATEGORIES = ["meal", "main", "side", "drink", "dessert", "bundle"];
 
 describe("catalog.json matches SPEC §3", () => {
-  it("has items for all 4 chains", () => {
-    for (const chain of CHAINS) expect(c.items.some((i) => i.chain === chain)).toBe(true);
+  it("only ships items for chains with verified catalog data", () => {
+    for (const item of c.items) expect(c.chains.some((chain) => chain.id === item.chain)).toBe(true);
   });
 
   it("items are valid", () => {

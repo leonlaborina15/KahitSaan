@@ -13,6 +13,19 @@ scraper/data/menu_items.csv   │        └─ prints counts + every dropped ro
 scraper/data/landmarks.csv    ┘
 ```
 
+### Collection workflow
+
+1. Create `scraper/.env` with `FIRECRAWL_API_KEY=...`. This ignored file is the only place the build-time cloud key belongs.
+2. Create a virtual environment and install `scraper/requirements.txt`.
+3. Run `python scraper/menus.py`. It uses Firecrawl on the chains' official menu pages and writes page snapshots, extracted JSON, a manifest, and `menu_candidates.csv` under ignored `scraper/output/menus/`.
+4. Run `python scraper/branches.py`. It queries OpenStreetMap Overpass inside the Cabanatuan bounds and writes `scraper/output/branches_candidates.csv`.
+5. Review candidates against the rules below. Confirm branch existence and hours using an official store directory or Google Maps. Confirm local prices using an official ordering page, menu board, or delivery listing. Copy only reviewed rows into `scraper/data/*.csv` and set `label_status=verified`.
+6. Run `python scraper/build.py --check`, then `python scraper/build.py`. Candidate outputs never enter the app directly.
+
+The menu collector uses only official chain pages and never sends user data. Firecrawl runs during dataset preparation; there is no Firecrawl package, key, or request in `src/`. The 2023 popularity graphic is useful for choosing chains, but it is not evidence for current products, prices, branches, or hours.
+
+Official menu sources are configured in `scraper/menus.py`. Some official sites publish product names without prices or use location-specific prices. Missing values remain blank and the row remains `needs review`; do not fill them from inference.
+
 Field names below match `src/lib/types.ts` and SPEC.md §3. Change SPEC.md first, then the type, then this doc.
 
 ---
@@ -32,18 +45,18 @@ Field names below match `src/lib/types.ts` and SPEC.md §3. Change SPEC.md first
 History, Saved and taste memory store item and branch ids on the phone. If an id changes, users lose that memory.
 - Set the id once when the row is created. Never regenerate it, even if the name or price changes.
 - Format: `<chain-prefix>-<slug-of-name>`, lowercase, words joined by `-`.
-- Chain prefixes: `jb` (jollibee), `mc` (mcdonalds), `mi` (mang-inasal), `ck` (chowking).
+- Chain prefixes: `jb` (jollibee), `mc` (mcdonalds), `mi` (mang-inasal), `ck` (chowking), `kf` (KFC), `gl` (Goldilocks), `gw` (Greenwich), `sh` (Shakey's).
 - Examples: `jb-1-pc-chickenjoy-with-rice`, `mi-pm1-paa-large`, `jb-sm-cabanatuan` (branch), `sm-cabanatuan` (landmark).
 
 ---
 
 ## 1. `chains.csv`
 
-One row per chain. Exactly 4 rows. Average wait is stored per meal period here (one column each); the build turns it into `chains[].avg_wait`.
+One row per supported chain. Average wait is stored per meal period here (one column each); the build turns it into `chains[].avg_wait`. Wait values are hand-estimates and must be displayed as estimates. A chain is shipped to the app only when it also has at least one verified branch and one verified meal item.
 
 | Column | Type | Source | Required | Why |
 |---|---|---|---|---|
-| `id` | `jollibee` / `mcdonalds` / `mang-inasal` / `chowking` | Hand-entered | Yes | Chain filter. Every order stays at one chain. |
+| `id` | `jollibee` / `mcdonalds` / `mang-inasal` / `chowking` / `kfc` / `goldilocks` / `greenwich` / `shakeys` | Hand-entered | Yes | Chain filter. Every order stays at one chain. |
 | `name` | text | Hand-entered | Yes | Display name ("McDonald's"). |
 | `color` | hex, e.g. `#D62300` | Hand-entered | Yes | Display only. |
 | `wait_breakfast` | whole minutes | Hand-estimated | Yes | Speed estimate changes by time of day. Shown as `~`. |
@@ -190,12 +203,16 @@ Protein `none` becomes `null`. Tags become a JSON array.
 | Hours | `open_time` and `close_time` set, unless `is_24h` | Error |
 | Unique ids | No duplicate item, branch or landmark id | Fatal |
 | ID kept | An id in the previous `catalog.json` that's missing now is listed as a warning (item removed or renamed?) | Warning |
-| Minimum size | ≥ 60 items, ≥ 10 branches, 4 chains, 5 landmarks; every chain has ≥ 1 branch and ≥ 1 `meal` | Fatal |
+| Minimum size | ≥ 60 items, ≥ 10 branches, 5 landmarks; each shipped chain has ≥ 1 branch and ≥ 1 `meal` | Fatal |
 
 After the build, `npm test` (catalog + ranking tests) must pass before the catalog is committed.
 
 ### Commands
 ```
+python -m venv .venv
+.venv/Scripts/python -m pip install -r scraper/requirements.txt
+.venv/Scripts/python scraper/menus.py
+.venv/Scripts/python scraper/branches.py
 python scraper/build.py --check   # check the sheets, write nothing (run while filling them)
 python scraper/build.py           # check + write public/catalog.json
 npm test

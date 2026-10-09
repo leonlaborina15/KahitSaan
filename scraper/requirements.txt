@@ -1,0 +1,2 @@
+firecrawl-py>=4,<5
+requests>=2.32,<3

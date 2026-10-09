@@ -7,7 +7,7 @@
 **MVP (only these):** first-open setup · plain-language request · best meal/combo under budget · distance + speed ranking · taste memory · one-line reason.
 **Not building:** accounts, live scraping, reviews, ordering, payment, multi-city coverage.
 
-**Demo area:** Cabanatuan City, Nueva Ecija only. Catalog covers 4 chains: Jollibee, McDonald's, Mang Inasal, Chowking.
+**Demo area:** Cabanatuan City, Nueva Ecija only. Supported chains: Jollibee, McDonald's, Mang Inasal, Chowking, KFC, Goldilocks, Greenwich, and Shakey's. A chain appears in the shipped catalog only after it has verified menu and branch data.
 **Demo device:** laptop (Chrome, WebGPU) + 1 flagship Android (Chrome, WebGPU). Hosted as a fully static site — no server at all.
 
 ## 2. Architecture
@@ -152,7 +152,7 @@ Output ONLY one JSON object, no other text. Keys:
 budget (number in pesos or null), people (integer), hunger ("low"|"normal"|"high"),
 urgency ("low"|"normal"|"high"), max_distance_km (number or null),
 cravings (array of lowercase food words), avoid (array of lowercase words),
-chains (array from: jollibee, mcdonalds, mang-inasal, chowking), time_context ("late_night"|"breakfast"|null).
+chains (array from: jollibee, mcdonalds, mang-inasal, chowking, kfc, goldilocks, greenwich, shakeys), time_context ("late_night"|"breakfast"|null).
 Hints: "lang"/"budget" near a number = budget. "gutom na gutom"/"patay gutom" = hunger high.
 "meryenda"/"konti lang" = hunger low. "ayoko ng matagal"/"nagmamadali"/"bilis" = urgency high.
 "chill lang"/"di nagmamadali" = urgency low. "malapit lang" = max_distance_km 1.

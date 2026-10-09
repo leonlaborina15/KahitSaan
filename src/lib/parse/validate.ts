@@ -2,7 +2,7 @@
 import type { ChainId, Filters, Level, Prefs } from "@/lib/types";
 
 const LEVELS: Level[] = ["low", "normal", "high"];
-const CHAIN_IDS: ChainId[] = ["jollibee", "mcdonalds", "mang-inasal", "chowking"];
+const CHAIN_IDS: ChainId[] = ["jollibee", "mcdonalds", "mang-inasal", "chowking", "kfc", "goldilocks", "greenwich", "shakeys"];
 
 const words = (v: unknown): string[] =>
   Array.isArray(v) ? v.filter((x): x is string => typeof x === "string").map((x) => x.toLowerCase().trim()).filter(Boolean) : [];

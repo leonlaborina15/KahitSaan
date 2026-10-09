@@ -23,8 +23,8 @@ ROOT = Path(__file__).resolve().parent.parent
 DATA = ROOT / "scraper" / "data"
 OUT = ROOT / "public" / "catalog.json"
 
-CHAINS = ["jollibee", "mcdonalds", "mang-inasal", "chowking"]
-PREFIX = {"jollibee": "jb", "mcdonalds": "mc", "mang-inasal": "mi", "chowking": "ck"}
+CHAINS = ["jollibee", "mcdonalds", "mang-inasal", "chowking", "kfc", "goldilocks", "greenwich", "shakeys"]
+PREFIX = {"jollibee": "jb", "mcdonalds": "mc", "mang-inasal": "mi", "chowking": "ck", "kfc": "kf", "goldilocks": "gl", "greenwich": "gw", "shakeys": "sh"}
 CATEGORIES = ["meal", "main", "side", "drink", "dessert", "bundle"]
 PROTEINS = ["chicken", "beef", "pork", "fish", "seafood", "mixed", "none"]
 FOOD_TYPES = ["chicken", "burger", "pasta", "rice meal", "noodles", "sisig", "snack", "dessert", "drink"]
@@ -245,21 +245,28 @@ def main() -> int:
     branch_rows = collect(read(args.data, "branches.csv"), build_branch, "branches", dropped)
     item_rows = collect(read(args.data, "menu_items.csv"), build_item, "menu_items", dropped)
     landmarks = collect(read(args.data, "landmarks.csv"), build_landmark, "landmarks", dropped)
-    branches = [b for b, _ in branch_rows]
-    items = [i for i, _ in item_rows]
+    candidate_branches = [b for b, _ in branch_rows]
+    candidate_items = [i for i, _ in item_rows]
+    active_chain_ids = {
+        chain for chain in CHAINS
+        if any(b["chain"] == chain for b in candidate_branches)
+        and any(i["chain"] == chain and i["category"] == "meal" for i in candidate_items)
+    }
+    active_chains = [c for c in chains if c["id"] in active_chain_ids]
+    active_branch_rows = [(b, checked) for b, checked in branch_rows if b["chain"] in active_chain_ids]
+    active_item_rows = [(i, checked) for i, checked in item_rows if i["chain"] in active_chain_ids]
+    branches = [b for b, _ in active_branch_rows]
+    items = [i for i, _ in active_item_rows]
 
-    for rows, label in ((chains, "chain"), (branches, "branch"), (items, "item"), (landmarks, "landmark")):
+    for rows, label in ((chains, "chain"), (candidate_branches, "branch"), (candidate_items, "item"), (landmarks, "landmark")):
         fatal_dupes(rows, label, fatal)
 
     if sorted(c["id"] for c in chains) != sorted(CHAINS):
         fatal.append(f"chains.csv must have exactly {CHAINS}")
     if len(landmarks) != 5:
         fatal.append(f"need 5 landmarks, have {len(landmarks)}")
-    for chain in CHAINS:
-        if not any(b["chain"] == chain for b in branches):
-            fatal.append(f"{chain}: no branches")
-        if not any(i["chain"] == chain and i["category"] == "meal" for i in items):
-            fatal.append(f"{chain}: no 'meal' items")
+    if not active_chains:
+        fatal.append("need at least 1 chain with a verified branch and verified meal")
     if not args.allow_small:
         if len(items) < MIN_ITEMS:
             fatal.append(f"need >= {MIN_ITEMS} items, have {len(items)}")
@@ -275,11 +282,12 @@ def main() -> int:
                 gone = {r["id"] for r in old.get(key, [])} - {r["id"] for r in new}
                 warnings += [f"{key} id gone since last build (removed or renamed?): {i}" for i in sorted(gone)]
 
-    print(f"chains {len(chains)} | branches {len(branches)} | items {len(items)} | landmarks {len(landmarks)}")
+    print(f"active chains {len(active_chains)} | branches {len(branches)} | items {len(items)} | landmarks {len(landmarks)}")
     for chain in CHAINS:
         n_items = sum(i["chain"] == chain for i in items)
         n_branches = sum(b["chain"] == chain for b in branches)
-        print(f"  {chain:12} {n_branches:3} branches {n_items:4} items")
+        state = "active" if chain in active_chain_ids else "not shipped (needs verified branch + meal)"
+        print(f"  {chain:12} {n_branches:3} branches {n_items:4} items — {state}")
     for line in dropped:
         print(f"DROPPED  {line}")
     for line in warnings:
@@ -290,14 +298,14 @@ def main() -> int:
         print("Not written. Fix the FATAL lines above.")
         return 1
 
-    version = max([d for _, d in branch_rows] + [d for _, d in item_rows])
+    version = max([d for _, d in active_branch_rows] + [d for _, d in active_item_rows])
     catalog = {
         "version": version,
         "currency": "PHP",
         "items": items,
         "branches": branches,
         "landmarks": landmarks,
-        "chains": chains,
+        "chains": active_chains,
     }
     if args.check:
         print("Check OK (nothing written).")

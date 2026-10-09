@@ -1,6 +1,6 @@
 // Shapes from SPEC.md §3–4. Change SPEC.md first, then this file.
 
-export type ChainId = "jollibee" | "mcdonalds" | "mang-inasal" | "chowking";
+export type ChainId = "jollibee" | "mcdonalds" | "mang-inasal" | "chowking" | "kfc" | "goldilocks" | "greenwich" | "shakeys";
 export type Category = "meal" | "main" | "side" | "drink" | "dessert" | "bundle";
 export type Level = "low" | "normal" | "high";
 export type Priority = "cheap" | "fast" | "near" | "filling";

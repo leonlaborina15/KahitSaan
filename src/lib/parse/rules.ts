@@ -37,6 +37,10 @@ const CHAINS: [ChainId, RegExp][] = [
   ["mcdonalds", /\b(mcdo|mcdonalds?|mcdonald's|mcd)\b/],
   ["mang-inasal", /\b(mang inasal|inasal)\b/],
   ["chowking", /\bchowking\b/],
+  ["kfc", /\b(kfc|kentucky fried chicken)\b/],
+  ["goldilocks", /\bgoldilocks\b/],
+  ["greenwich", /\bgreenwich\b/],
+  ["shakeys", /\b(shakey'?s|shakeys)\b/],
 ];
 
 // A number followed by these is not money.
