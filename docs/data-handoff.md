@@ -35,6 +35,22 @@ Branch: `devin/1791560410-dataset-cabanatuan` (from `main` @ f523812).
 
 **To continue:** install Firecrawl + key, run `python scraper/menus.py`, then `python scraper/build.py --check`; verify the three Mang Inasal GMaps branches' coords/hours and the Chowking Highway closing time; prices for Jollibee/McDonald's may come from `mcdelivery.com.ph`/`jollibeelivery.com` if a fetching path is found, or hand-label from an in-store/foodpanda branch menu with the branch-specific URL as `source_url`.
 
+## Session log — 2026-10-09 (Firecrawl + real catalog)
+
+Branch: `devin/1791563648-real-catalog` (from `main` @ 24f45f7, after PR #3 merged).
+
+**Firecrawl.** `FIRECRAWL_API_KEY` is now in `scraper/.env` (gitignored, chmod 600). `scraper/menus.py` ran and produced 394 candidates: jollibee 23, mcdonalds 10, mang-inasal 124, chowking 61, kfc 0, goldilocks 73, greenwich 86, shakeys 17 — but only Mang Inasal (124) and Greenwich (38) had parsed prices; the other chains' pages render names without prices. New helper `scraper/fetch_page.py` (Firecrawl, markdown or `--menu` JSON-extract mode with scroll actions + `only_main_content=False`) successfully extracts priced menus from **foodpanda.ph/restaurant/<id>/<branch>** pages where markdown mode fails. Extracted: Jollibee SM Cabanatuan `d9vc` (46 items), McDonald's Cabanatuan Joson/Zulueta `x4lz` (25), Chowking NE Pacific Mall `k2an` (25). These pages were checked against the target Cabanatuan branches before use (handoff pending item 6).
+
+**Menu evidence added.** Jollibee 24 verified + 21 needs-review, McDonald's 13 verified + 12, Chowking 7 verified + 16 rows were generated from the foodpanda JSON into `menu_items.csv`, each with the foodpanda branch URL as `source_url` and `price_date` 2026-10-09. **Caveat: foodpanda prices are delivery prices and may differ from in-store.** Verified = exact-priced solo items; "from ₱" prices and family bundles stay `needs review` (never promoted). `desc`/`tags`/`protein`/`fill_score`/`prep_minutes` are hand-labeled name-derived judgments per `docs/dataset.md`, same as the MI rows. Mislabels corrected this session: bacon items pork=true, pancakes dropped a bogus `rice` tag, breakfast solos → `rice meal`, Choco Pao/Hot Fresh Brew → dessert/drink, Ultimate Spicy Bundle → bundle+needs-review, Buchi Platter → dessert, duplicate Chowking Lauriat deduped. `Chicken Macaroni Soup` re-tagged `chicken|soup`, protein `chicken` (name-only match was failing the food-type golden test).
+
+**Branch evidence added.** The official `manginasal.ph/locations` directory (fetched via `fetch_page.py`, 584 KB) lists four Cabanatuan stores with hours; three are in-bounds and now `verified`: `mi-sm-cabanatuan` (SM City Cabanatuan, 09:00–21:00), `mi-mega-center` (Mega Center Mall, 10:00–21:00), `mi-waltermart` (Waltermart Cabanatuan, 09:00–21:00). `mi-ne-pacific` (NE Pacific Mall, 10:00–20:00) stays `needs review` pending in-city coord/OSM cross-check. `mc-sm-cabanatuan`, `ck-sm-cabanatuan`, `ck-ne-pacific` also remain `needs review`. branches.csv: 40 rows, 15 verified.
+
+**Real catalog built.** `python scraper/build.py` now writes a non-mock `public/catalog.json` (version 2026-10-09): **3 active chains, 15 branches, 80 items, 5 landmarks**. Jollibee 6×24 items, McDonald's 6×13, Mang Inasal 3×43. chowking/kfc/goldilocks/greenwich/shakeys not shipped (no verified branch + meal).
+
+**Test fixes (mock-catalog assumptions).** Two golden tests assumed mock data: "who opens first" now expects 9am (real MI hours); "within 5 km" uses a synthetic `here` ~2 km SW since every landmark is now <1 km from some branch. `breakfast_only` test's picked meal (₱219) exceeded its ₱200 test budget — `noPork` budget raised to 1000. `npm test` 61/61, `npm run build` static export clean (sw.js: 64 files, 1858 KB).
+
+**To continue:** verify `mi-ne-pacific`/`mc-sm-cabanatuan`/`ck-sm-cabanatuan`/`ck-ne-pacific` coords+hours to activate Chowking; promote the `needs review` menu rows only with in-store or official evidence; KFC/Goldilocks/Greenwich/Shakey's need branch + priced-menu evidence to activate.
+
 ## Pending work
 
 1. Inspect current `git status`, diffs, and the actual files before changing anything; preserve any user edits.

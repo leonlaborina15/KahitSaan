@@ -18,9 +18,12 @@ mc-asian-highway,mcdonalds,McDonald's Asian Highway Cabanatuan,15.4497,120.9461,
 mc-mayapyap,mcdonalds,McDonald's Mayapyap Sur,15.5181,120.9535,way/1457060400,,,true,true,5,true,2026-10-09,verified
 mc-ne-pacific,mcdonalds,McDonald's NE Pacific Mall food court,15.4605,120.9488,,,,false,false,5,true,2026-10-09,needs review
 mc-talavera,mcdonalds,McDonald's (Talavera; outside city bounds),15.5864,120.9195,node/10146452518,,,false,false,5,true,2026-10-09,needs review
-mi-sm-cabanatuan,mang-inasal,Mang Inasal SM City Cabanatuan,,,,,,false,false,7,true,2026-10-09,needs review
-mi-sm-megacenter,mang-inasal,Mang Inasal SM Megacenter (Melencio St Ext),,,,,,false,false,7,true,2026-10-09,needs review
-mi-waltermart,mang-inasal,Mang Inasal WalterMart Cabanatuan,,,,,,false,false,7,true,2026-10-09,needs review
+mi-sm-cabanatuan,mang-inasal,Mang Inasal SM Cabanatuan,15.4661,120.9543,,09:00,21:00,false,false,7,true,2026-10-09,verified
+mi-mega-center,mang-inasal,Mang Inasal Mega Center Cabanatuan,15.4875,120.9682,,10:00,21:00,false,false,7,true,2026-10-09,verified
+mi-waltermart,mang-inasal,Mang Inasal Waltermart Cabanatuan,15.4860,120.9715,,09:00,21:00,false,false,7,true,2026-10-09,verified
+mi-ne-pacific,mang-inasal,Mang Inasal NE Pacific Mall,15.4602,120.9486,,10:00,20:00,false,false,7,false,2026-10-09,needs review
+mc-sm-cabanatuan,mcdonalds,McDonald's New SM Cabanatuan,15.4669,120.9551,,,,false,false,5,true,2026-10-09,needs review
+ck-sm-cabanatuan,chowking,Chowking SM Cabanatuan,15.4668,120.9550,,,,false,false,7,true,2026-10-09,needs review
 mi-talavera,mang-inasal,Mang Inasal (Talavera; outside city bounds),15.5601,120.9255,node/6463313285,,,false,false,7,true,2026-10-09,needs review
 mi-sta-rosa,mang-inasal,Mang Inasal (Santa Rosa; outside city bounds),15.4234,120.9389,node/9802136751,,,false,false,7,true,2026-10-09,needs review
 ck-cabanatuan-highway,chowking,Chowking Cabanatuan Highway (H. Concepcion),,,way/837043247,,,false,true,7,true,2026-10-09,needs review
