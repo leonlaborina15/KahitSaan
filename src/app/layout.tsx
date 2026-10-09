@@ -25,7 +25,7 @@ export const metadata: Metadata = {
   appleWebApp: { capable: true, title: "KahitSaan", statusBarStyle: "default" },
 };
 
-export const viewport: Viewport = { themeColor: "#FFFBF5", width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { themeColor: "#171210", width: "device-width", initialScale: 1 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
@@ -36,7 +36,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           <GlobalSheets />
         </AppDataProvider>
         <SwRegister />
-        <Toaster position="top-center" toastOptions={{ style: { borderRadius: 14, fontFamily: "var(--font-jakarta)" } }} />
+        <Toaster theme="dark" position="top-center" toastOptions={{ style: { borderRadius: 14, fontFamily: "var(--font-jakarta)" } }} />
       </body>
     </html>
   );

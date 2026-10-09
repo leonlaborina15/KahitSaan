@@ -6,9 +6,10 @@ import { SelectChip } from "@/components/select-tile";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
-import { CHAIN_NAMES } from "@/lib/catalog";
+import { CHAIN_NAMES, catalog } from "@/lib/catalog";
 import type { ExploreFilters, UnahinKey } from "@/lib/rank/explore";
 import type { ChainId, Level } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
 export const HUNGER: Record<Level, string> = { low: "Konti", normal: "Sakto", high: "Gutom na gutom" };
 export const URGENCY: Record<Level, string> = { low: "Chill", normal: "Normal", high: "Nagmamadali" };
@@ -193,6 +194,34 @@ export function QuickFilters({ f, set }: { f: ExploreFilters; set: Set_ }) {
       {QUICK.map((q) => (
         <SelectChip key={q.id} on={q.on(f)} onClick={() => set(q.flip(f))}>{q.label}</SelectChip>
       ))}
+    </div>
+  );
+}
+
+/** Chain chips tinted in each chain's own color (Jollibee red, McDo yellow, MI green). */
+export function ChainFilters({ f, set }: { f: ExploreFilters; set: Set_ }) {
+  if (!catalog.chains.length) return null;
+  return (
+    <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Kainan">
+      {catalog.chains.map((c) => {
+        const on = f.chains.includes(c.id as ChainId);
+        return (
+          <button
+            key={c.id}
+            type="button"
+            aria-pressed={on}
+            onClick={() => set({ chains: toggle(f.chains, c.id as ChainId) })}
+            className={cn(
+              "inline-flex min-h-11 shrink-0 items-center gap-2 rounded-full border px-4 text-sm font-semibold transition-colors",
+              on ? "border-transparent" : "bg-card hover:border-brand/50",
+            )}
+            style={on ? { background: `${c.color}33`, boxShadow: `inset 0 0 0 1.5px ${c.color}` } : undefined}
+          >
+            <span className="size-2.5 rounded-full" style={{ background: c.color }} aria-hidden />
+            {c.name}
+          </button>
+        );
+      })}
     </div>
   );
 }

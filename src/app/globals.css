@@ -2,7 +2,7 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* KahitSaan v2 tokens. Same names in light + dark. */
+/* KahitSaan v2 tokens — unified warm theme: deep charcoal base + mango/sili accents. */
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme inline {
@@ -44,68 +44,41 @@
   --radius-2xl: 24px; /* cards */
   --radius-3xl: 28px;
   --radius-4xl: 32px;
-  --shadow-raised: 0 1px 2px rgb(26 20 16 / 0.04), 0 6px 16px -6px rgb(26 20 16 / 0.10), 0 18px 40px -16px rgb(226 72 44 / 0.18);
-  --shadow-soft: 0 1px 2px rgb(26 20 16 / 0.04), 0 8px 24px -12px rgb(26 20 16 / 0.12);
+  --shadow-raised: 0 1px 2px rgb(0 0 0 / 0.25), 0 8px 24px -10px rgb(0 0 0 / 0.45), 0 22px 48px -18px rgb(226 72 44 / 0.28);
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / 0.22), 0 10px 28px -14px rgb(0 0 0 / 0.4);
 }
 
 :root {
   --radius: 16px;
-  --background: #fffbf5;
-  --foreground: #1a1410;
-  --card: #ffffff;
-  --card-foreground: #1a1410;
-  --popover: #ffffff;
-  --popover-foreground: #1a1410;
-  --surface-2: #fff3e6;
-  /* Sili #E2482C. Filled buttons use a deeper shade so white text passes AA (4.5:1). */
-  --brand: #e2482c;
-  --primary: #c93a20;
+  --background: #171210;
+  --foreground: #fbf3ea;
+  --card: #231a14;
+  --card-foreground: #fbf3ea;
+  --popover: #231a14;
+  --popover-foreground: #fbf3ea;
+  --surface-2: #2d231b;
+  /* Sili #E2482C on charcoal; mangga for accents; ube for on-device AI. */
+  --brand: #ff6a4d;
+  --primary: #e2482c;
   --primary-foreground: #ffffff;
-  --primary-soft: #ffe4dc;
+  --primary-soft: #4a2219;
   --mangga: #ffc23d;
-  --ube: #6c4cf1;
-  --ube-soft: #efeaff;
-  --secondary: #fff3e6;
-  --secondary-foreground: #1a1410;
-  --muted: #fff3e6;
-  --muted-foreground: #6e625a;
-  --accent: #ffe4dc;
-  --accent-foreground: #1a1410;
-  --destructive: #c2410c;
+  --ube: #9d86ff;
+  --ube-soft: #2a2245;
+  --secondary: #2d231b;
+  --secondary-foreground: #fbf3ea;
+  --muted: #2d231b;
+  --muted-foreground: #b8aaa0;
+  --accent: #4a2219;
+  --accent-foreground: #fbf3ea;
+  --destructive: #e8593c;
   --success: #1fa36a;
-  --success-ink: #13744a;
+  --success-ink: #5fd39f;
   --warning: #f29a1f;
-  --warning-ink: #8a5208;
-  --border: #f0e6da;
-  --input: #f0e6da;
-  --ring: #e2482c;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #16110d;
-    --foreground: #fbf3ea;
-    --card: #221a15;
-    --card-foreground: #fbf3ea;
-    --popover: #221a15;
-    --popover-foreground: #fbf3ea;
-    --surface-2: #2c221b;
-    --brand: #ff6a4d;
-    --primary: #e2482c;
-    --primary-soft: #4a2219;
-    --ube: #9d86ff;
-    --ube-soft: #2a2245;
-    --secondary: #2c221b;
-    --secondary-foreground: #fbf3ea;
-    --muted: #2c221b;
-    --muted-foreground: #b8aaa0;
-    --accent: #4a2219;
-    --accent-foreground: #fbf3ea;
-    --success-ink: #5fd39f;
-    --warning-ink: #ffbf66;
-    --border: #3a2e26;
-    --input: #3a2e26;
-  }
+  --warning-ink: #ffbf66;
+  --border: #3b2e25;
+  --input: #3b2e25;
+  --ring: #ff6a4d;
 }
 
 @layer base {
@@ -114,6 +87,7 @@
   }
   html {
     -webkit-tap-highlight-color: transparent;
+    color-scheme: dark;
   }
   body {
     @apply bg-background text-foreground font-sans antialiased;
@@ -141,8 +115,24 @@
 @keyframes ks-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 /* Pulse uses outline so it never replaces the mangga ring (box-shadow). */
 @keyframes ks-pulse { 0%, 85%, 100% { outline: 0 solid rgb(255 194 61 / 0.7); outline-offset: 0; } 92% { outline: 8px solid rgb(255 194 61 / 0); outline-offset: 6px; } }
+/* Mic button: expanding soft ring. */
+@keyframes ks-mic-ping { 0% { box-shadow: 0 0 0 0 rgb(255 194 61 / 0.55); } 80%, 100% { box-shadow: 0 0 0 16px rgb(255 194 61 / 0); } }
+
 .animate-bob { animation: ks-bob 1.6s ease-in-out infinite; }
 .animate-ks-pulse { animation: ks-pulse 4s ease-out infinite; }
+.animate-mic-ping { animation: ks-mic-ping 2.2s cubic-bezier(0, 0, 0.2, 1) infinite; }
+
+/* Rotating conic-gradient ring (hero search + best pick). Static gradient when @property is unsupported. */
+@property --ga {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes ks-glow { to { --ga: 360deg; } }
+.glow-ring {
+  background: conic-gradient(from var(--ga), #ffc23d, #e2482c, #ff6a4d, #9d86ff, #ffc23d);
+  animation: ks-glow 5s linear infinite;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
