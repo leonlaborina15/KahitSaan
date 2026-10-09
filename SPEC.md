@@ -1,4 +1,4 @@
-# Busog Budget — Product & Technical Spec
+# KahitSaan — Product & Technical Spec
 
 > "₱150 lang, gutom na gutom, ayoko ng matagal, malapit lang." → best meal near you, picked by AI running on your phone.
 
@@ -7,15 +7,19 @@
 **MVP (only these):** first-open setup · plain-language request · best meal/combo under budget · distance + speed ranking · taste memory · one-line reason.
 **Not building:** accounts, live scraping, reviews, ordering, payment, multi-city coverage.
 
-**Demo area:** one area only (the hackathon venue + ~3 km). Catalog covers 4 chains: Jollibee, McDonald's, Mang Inasal, Chowking.
+**Demo area:** Cabanatuan City, Nueva Ecija only. Catalog covers 4 chains: Jollibee, McDonald's, Mang Inasal, Chowking.
+**Demo device:** laptop (Chrome, WebGPU) + 1 flagship Android (Chrome, WebGPU). Hosted as a fully static site — no server at all.
 
 ## 2. Architecture
 
 ```
-[one-time, cloud]  scraper/ (Python) ──► public/catalog.json  (bundled, cached by service worker)
+[one-time, build time, cloud]
+  Firecrawl (menus, JSON extract) ─┐
+  OSM Overpass (branch locations) ─┼─► scraper/ (Python) + manual_fixes.csv ──► public/catalog.json
+  Google Maps (manual hours check) ┘     (committed, bundled, cached by service worker)
 
 [on device]
-  request text ──► Parser ──► Filters JSON ──► Ranker (TS) ──► Combo builder (TS) ──► Top 3
+  request text ──► Parser ──► Filters JSON ──► Ranker (TS) ──► Combo builder (TS) ──► Best + 2 alts
                     │  LLM (WebLLM)            ▲ taste score (embeddings)                │
                     └─ fallback: regex parser  │                                        ▼
                                           IndexedDB: prefs, taste profile, picks   LLM writes 1-line reason
@@ -28,6 +32,8 @@
 | Embeddings | transformers.js `Xenova/all-MiniLM-L6-v2` (q8) | ~23 MB | Runs on WASM, works without WebGPU |
 | Storage | IndexedDB via `idb-keyval` | — | prefs, taste, picks, model cache (WebLLM uses Cache API) |
 | Offline | Service worker caches app shell + catalog.json | — | App works in airplane mode after first load |
+| Hosting | Next.js `output: 'export'` on Vercel | — | Static files only; no API routes |
+| Tests | Vitest | — | parser (tests/prompts.md) + ranker |
 
 **Rule: no AI server, no cloud AI API. Ever.**
 
@@ -59,18 +65,20 @@
 ### 3.2 Branch (`catalog.json → branches[]`)
 ```json
 {
-  "id": "jb-sm-north-edsa",
+  "id": "jb-sm-cabanatuan",
   "chain": "jollibee",
-  "name": "Jollibee SM North EDSA",
-  "lat": 14.6563,
-  "lng": 121.0293,
+  "name": "Jollibee SM City Cabanatuan",
+  "lat": 15.4900,
+  "lng": 120.9700,
   "hours": { "open": "06:00", "close": "22:00" },
   "is_24h": false,
   "base_wait_minutes": 5,
-  "has_drive_thru": false
+  "has_drive_thru": false,
+  "source": "osm:node/123456, hours checked on Google Maps 2026-10-09"
 }
 ```
-Items are chain-wide (same menu at every branch of a chain). `catalog.json` = `{ "version": "2026-10-09", "currency": "PHP", "items": [], "branches": [] }`.
+(Coordinates above are placeholders — real values come from OSM.)
+Items are chain-wide (same menu at every branch of a chain). `catalog.json` = `{ "version": "2026-10-09", "currency": "PHP", "items": [], "branches": [], "landmarks": [{ "id": "sm-cabanatuan", "name": "SM City Cabanatuan", "lat": 0, "lng": 0 }] }`.
 
 ### 3.3 Preferences (IndexedDB key `prefs`)
 ```json
@@ -184,7 +192,7 @@ score = Σ w_k * sub_k
 - `hunger high` → `filling × 1.5`
 - `cravings` not empty → `taste × 1.5`
 
-Return top 3, max one result per chain-branch pair for variety.
+Return the best result + 2 alternatives, max one result per branch for variety.
 
 ## 6. Combo builder
 Candidates per open branch are built from that chain's items:
@@ -208,7 +216,7 @@ Fallback template: `"₱{total} lang, {eta} min, at {distance} km — {top_reaso
 1. **Setup (first open, ~30 s, tap cards):** 6 steps, one per screen, big cards, progress dots, "Skip" always visible.
    budget chips (₱100/150/200/300/custom) → favorite foods (multi) → dislikes (multi + "bawal baboy") → appetite (3 cards) → priority (drag or tap-in-order: Mura / Mabilis / Malapit / Busog) → favorite chains (logos). Model download prompt shows during step 2 (see §9).
 2. **Home:** text box with placeholder example, mic not included, 4 quick-chips ("₱100 lang", "Gutom na gutom", "Bilis!", "Kaming 4"). Location status line. Model status pill ("AI ready · offline" / "Downloading 42%" / "Simple mode").
-3. **Results:** editable filter chips at top, 3 result cards: chain logo, items, total ₱, distance, ETA, one-line reason, **"Ito na!"** button (= pick → taste memory + opens Google Maps directions link).
+3. **Results:** editable filter chips at top, 1 big **best pick** card + 2 smaller alternatives; each shows chain logo, items, total ₱, distance, ETA, one-line reason, **"Ito na!"** button (= pick → taste memory + opens Google Maps directions link).
 4. **Settings:** edit prefs, reset taste memory, model status/delete model, "Everything stays on this phone" note.
 
 ## 9. Model download
@@ -221,10 +229,28 @@ Fallback template: `"₱{total} lang, {eta} min, at {distance} km — {top_reaso
 - Resume: WebLLM cache is reused; on reopen, load from cache without asking again.
 
 ## 10. Location
-- `navigator.geolocation` once per search (5 s timeout). Denied/failed → manual "Nasaan ka?" pick from 3–5 landmark presets in the demo area. Distance = haversine.
+- `navigator.geolocation` once per search (5 s timeout). Distance = haversine.
+- Denied/failed/indoors → "Nasaan ka?" tap a **Cabanatuan landmark preset**: SM City Cabanatuan, NE Pacific Mall, NEUST main campus, Cabanatuan Public Market, Robinsons Townville. Coordinates taken from OSM by DATA (task #12), stored in `catalog.json → landmarks[]`.
 
-## 11. Decisions made (change if you disagree)
-- Qwen2.5 1.5B over Llama 3.2 1B: generally stronger at JSON output and multilingual text. **Verify with tests/prompts.md in task #8**; swap if Llama does better. 0.5B as low-end option.
-- Distance is straight-line × 1.3 for walking estimate (no maps API).
-- Speed of service is an **estimate** (prep + base wait), labeled "~" in UI. We do not claim live queue data.
-- One demo area, hand-verified branch coordinates/hours.
+## 11. Catalog pipeline (build time only)
+1. `scraper/branches.py` — OSM Overpass query: `brand` / `name` ~ Jollibee|McDonald's|Mang Inasal|Chowking inside Cabanatuan boundary → id, name, lat, lng, `opening_hours` if tagged. Free, no key.
+2. Hand-check every branch on Google Maps (exists? hours?) → `scraper/manual_fixes.csv`. Missing branches added by hand.
+3. `scraper/menus.py` — Firecrawl `scrape` with JSON extract schema (name, price, category, desc) on each chain's official menu page. Key in `scraper/.env` (`FIRECRAWL_API_KEY`), never committed. This is cloud AI **at build time only**, disclosed in README.
+4. Hand-label `tags`, `protein`, `contains_pork`, `spicy`, `fill_score`, `prep_minutes`, fix prices from menu boards if sites are outdated (note price date).
+5. `scraper/build.py` merges → `public/catalog.json`, validates shape, prints counts.
+The app never calls Firecrawl, OSM or any API at runtime.
+
+## 12. Decisions made
+| Topic | Decision |
+|---|---|
+| Area | Cabanatuan City only |
+| Chains | Jollibee, McDonald's, Mang Inasal, Chowking |
+| LLM | Qwen2.5-1.5B (WebLLM). **Verify vs Llama-3.2-1B with tests/prompts.md in task #8**; swap if Llama wins. 0.5B as low-end option |
+| No WebGPU | Simple mode (rule parser + template reason); embeddings still run via WASM. No second LLM path |
+| Hosting | Static export on Vercel, no server |
+| Data | Firecrawl (menus) + OSM Overpass (branches) + manual fixes |
+| Directions | Optional Google Maps link on "Ito na!" (needs internet); pick saves offline regardless |
+| UI language | Taglish |
+| Results | 1 best + 2 alternatives |
+| Distance | Straight line × 1.3 road factor; no maps API |
+| Speed | Estimate (prep + base wait), shown with "~"; no live queue data |

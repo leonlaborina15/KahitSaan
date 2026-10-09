@@ -1,4 +1,4 @@
-# Busog Budget
+# KahitSaan
 
 **Best fast-food meal near you, for your budget — picked by AI running on your phone.**
 AppBuildersPH Hackathon 2026 · Theme: Local AI
@@ -26,7 +26,7 @@ Use Chrome/Edge with WebGPU for the full AI. Other browsers run in Simple mode.
 | Request parsing (Qwen2.5 1.5B via WebLLM) | First app load |
 | Reason line generation (same LLM) | One-time model download (~1 GB, or ~400 MB small) |
 | Taste matching (MiniLM embeddings via transformers.js) | Opening Google Maps directions (optional) |
-| Ranking, combo building, distance, ETA | Running the scraper (dev only, not the user) |
+| Ranking, combo building, distance, ETA | Running the scraper (dev only: Firecrawl + OSM, not the user) |
 | Preferences, taste memory, history (IndexedDB) | |
 | Menu + branch catalog (bundled JSON) | |
 
@@ -40,12 +40,12 @@ No AI server. No cloud AI API calls. No account. Your preferences never leave yo
 
 ## Known limits
 - Prices and menus are a snapshot dated TODO; service speed is an estimate, not live queue data.
-- Demo area only: TODO.
+- Covers Cabanatuan City only.
 
 ## Disclosures
 - **Models:** Qwen2.5-1.5B-Instruct (q4f16_1, MLC build) and Qwen2.5-0.5B-Instruct — Apache 2.0; all-MiniLM-L6-v2 (Xenova ONNX port) — Apache 2.0.
-- **Frameworks/libraries:** Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, @mlc-ai/web-llm, @huggingface/transformers, idb-keyval; scraper: Python, requests, BeautifulSoup.
-- **APIs:** none for AI. Browser Geolocation, WebGPU, IndexedDB, Storage API. Google Maps links for directions only.
-- **Data sources:** public websites of Jollibee, McDonald's PH, Mang Inasal, Chowking (TODO: URLs + date); branch locations verified manually on Google Maps.
+- **Frameworks/libraries:** Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, @mlc-ai/web-llm, @huggingface/transformers, idb-keyval; Vitest; scraper: Python, firecrawl-py, requests.
+- **APIs:** none at runtime for AI. Build time only: Firecrawl (cloud scraping with LLM JSON extraction, used once to build the menu catalog), OpenStreetMap Overpass API. Browser Geolocation, WebGPU, IndexedDB, Storage API. Google Maps links for directions only.
+- **Data sources:** public websites of Jollibee, McDonald's PH, Mang Inasal, Chowking (TODO: URLs + date); branch locations from OpenStreetMap (© OpenStreetMap contributors, ODbL), verified manually on Google Maps. Area: Cabanatuan City.
 - **Existing code:** create-next-app and shadcn/ui templates. TODO: anything else.
 - **AI dev tools:** Claude Code (planning docs and code). TODO: others used by the team.
