@@ -2,50 +2,50 @@
 
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
-  Ban, Beef, ChevronLeft, Cookie, CookingPot, Drumstick, Fish, Flame, Hamburger, IceCreamBowl, MapPin, PiggyBank,
-  Popcorn, Shrimp, Soup, UtensilsCrossed, Wallet, Wheat, Zap, type LucideIcon,
-} from "lucide-react";
+  BowlSteam, CaretLeft, Cookie, CookingPot, Cow, Bird, Fire, Fish, ForkKnife, Grains, Hamburger, IceCream, Lightning, MapPin,
+  PiggyBank, Popcorn, Prohibit, Shrimp, Wallet, type Icon,
+} from "@phosphor-icons/react";
 import { useState } from "react";
 import { StickyActions } from "@/components/app-shell";
 import { ConfettiBurst } from "@/components/confetti";
+import { Kanin, type KaninMood } from "@/components/kanin";
 import { SelectChip, SelectTile } from "@/components/select-tile";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { CHAIN_NAMES, catalog } from "@/lib/catalog";
 import { DEFAULT_PREFS } from "@/lib/store/db";
 import type { ChainId, Prefs, Priority } from "@/lib/types";
-import { cn } from "@/lib/utils";
 
 const QUICK_BUDGETS = [100, 150, 200, 300];
-const FOODS: { id: string; label: string; Icon: LucideIcon }[] = [
-  { id: "chicken", label: "Chicken", Icon: Drumstick },
+const FOODS: { id: string; label: string; Icon: Icon }[] = [
+  { id: "chicken", label: "Chicken", Icon: Bird },
   { id: "burger", label: "Burger", Icon: Hamburger },
-  { id: "spaghetti", label: "Spaghetti", Icon: UtensilsCrossed },
-  { id: "rice", label: "Rice meal", Icon: Wheat },
-  { id: "noodles", label: "Noodles", Icon: Soup },
+  { id: "spaghetti", label: "Spaghetti", Icon: ForkKnife },
+  { id: "rice", label: "Rice meal", Icon: Grains },
+  { id: "noodles", label: "Noodles", Icon: BowlSteam },
   { id: "siopao", label: "Siopao", Icon: Cookie },
   { id: "fries", label: "Fries", Icon: Popcorn },
   { id: "fish", label: "Fish", Icon: Fish },
   { id: "sisig", label: "Sisig", Icon: CookingPot },
-  { id: "halo-halo", label: "Halo-halo", Icon: IceCreamBowl },
+  { id: "halo-halo", label: "Halo-halo", Icon: IceCream },
 ];
 // "pork" maps to prefs.avoid_pork; the rest go to prefs.dislikes.
-const AVOIDS: { id: string; label: string; Icon: LucideIcon }[] = [
+const AVOIDS: { id: string; label: string; Icon: Icon }[] = [
   { id: "pork", label: "Baboy", Icon: PiggyBank },
-  { id: "beef", label: "Baka", Icon: Beef },
+  { id: "beef", label: "Baka", Icon: Cow },
   { id: "seafood", label: "Seafood", Icon: Shrimp },
-  { id: "spicy", label: "Maanghang", Icon: Flame },
+  { id: "spicy", label: "Maanghang", Icon: Fire },
 ];
-const APPETITES: { id: Prefs["appetite"]; label: string; helper: string; Icon: LucideIcon }[] = [
+const APPETITES: { id: Prefs["appetite"]; label: string; helper: string; Icon: Icon }[] = [
   { id: "light", label: "Konti lang", helper: "Busog agad, light eater", Icon: Cookie },
-  { id: "normal", label: "Sakto", helper: "Normal na kain", Icon: Drumstick },
+  { id: "normal", label: "Sakto", helper: "Normal na kain", Icon: Bird },
   { id: "big", label: "Malakas kumain", helper: "Laging gutom, extra rice!", Icon: CookingPot },
 ];
-const PRIORITIES: { id: Priority; label: string; Icon: LucideIcon }[] = [
+const PRIORITIES: { id: Priority; label: string; Icon: Icon }[] = [
   { id: "cheap", label: "Mura", Icon: Wallet },
-  { id: "filling", label: "Busog", Icon: Soup },
+  { id: "filling", label: "Busog", Icon: BowlSteam },
   { id: "near", label: "Malapit", Icon: MapPin },
-  { id: "fast", label: "Mabilis", Icon: Zap },
+  { id: "fast", label: "Mabilis", Icon: Lightning },
 ];
 
 const CHAIN_HEX = Object.fromEntries(catalog.chains.map((c) => [c.id, c.color])) as Record<ChainId, string>;
@@ -142,7 +142,7 @@ export function Setup({
             <SelectTile key={a.id} Icon={a.Icon} label={a.label} on={avoidOn(a.id)} onClick={() => toggleAvoid(a.id)} />
           ))}
           <SelectTile
-            Icon={Ban}
+            Icon={Prohibit}
             label="Wala"
             on={noneAvoid}
             onClick={() => {
@@ -242,6 +242,8 @@ export function Setup({
   ];
 
   const s = steps[step];
+  const picked = [true, p.favorite_foods.length > 0, noneAvoid || p.avoid_pork || p.dislikes.length > 0, appetitePicked, p.priority.length > 0, p.favorite_chains.length > 0][step];
+  const mood: KaninMood = step === 0 ? "hungry" : picked ? "happy" : "thinking";
   const last = single || step === steps.length - 1;
 
   return (
@@ -254,12 +256,10 @@ export function Setup({
           disabled={step === 0 && !onBack}
           className="flex size-11 items-center justify-center rounded-full hover:bg-muted disabled:opacity-30"
         >
-          <ChevronLeft className="size-5" />
+          <CaretLeft size={22} />
         </button>
-        <div className="flex flex-1 gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={6} aria-valuenow={step + 1} aria-label="Setup progress">
-          {steps.map((_, i) => (
-            <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors", (single ? i === step : i <= step) ? "bg-brand" : "bg-border")} />
-          ))}
+        <div className="h-2 flex-1 overflow-hidden rounded-full bg-border" role="progressbar" aria-valuemin={1} aria-valuemax={6} aria-valuenow={step + 1} aria-label="Setup progress">
+          <motion.div className="h-full rounded-full bg-brand" animate={{ width: `${((step + 1) / steps.length) * 100}%` }} transition={{ type: "spring", stiffness: 200, damping: 30 }} />
         </div>
         {!single && (
           <button type="button" onClick={() => finish({ ...DEFAULT_PREFS, ...p })} className="min-h-11 px-2 text-sm font-medium text-muted-foreground underline">
@@ -277,7 +277,10 @@ export function Setup({
           transition={{ duration: 0.2 }}
           className="flex flex-col gap-2 pt-4"
         >
-          <h1 className="text-[26px] leading-tight">{s.title}</h1>
+          <div className="flex items-end gap-3">
+            <Kanin mood={mood} size={64} bob={mood === "hungry"} />
+            <h1 className="flex-1 text-[26px] leading-tight">{s.title}</h1>
+          </div>
           <p className="mb-4 text-muted-foreground">{s.helper}</p>
           {s.body}
         </motion.div>

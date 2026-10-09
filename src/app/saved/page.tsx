@@ -1,6 +1,6 @@
 "use client";
 
-import { Heart } from "lucide-react";
+import { Heart } from "@phosphor-icons/react";
 import { useRouter } from "next/navigation";
 import { useApp } from "@/components/app-data";
 import { AppShell } from "@/components/app-shell";
@@ -23,9 +23,9 @@ export default function Saved() {
   return (
     <AppShell>
       <div className="flex flex-col gap-4 py-2">
-        <h1 className="text-[28px]">Saved</h1>
+        <h1 className="text-[32px]">Saved</h1>
         {!ready ? (
-          <Skeleton className="h-40 rounded-[20px]" />
+          <Skeleton className="h-40 rounded-[24px]" />
         ) : (
           <Tabs defaultValue="food" className="gap-4">
             <TabsList className="h-11 w-full rounded-full">
@@ -35,7 +35,7 @@ export default function Saved() {
 
             <TabsContent value="food" className="flex flex-col gap-3">
               {saved.items.length === 0 ? (
-                <EmptyNote>Wala pang naka-save. I-tap ang ♥ sa results para i-save ang pagkain.</EmptyNote>
+                <EmptyNote action={{ label: "Maghanap", onClick: () => router.push("/results?q=") }}>Wala pang naka-save. I-tap ang puso sa results para i-save ang pagkain.</EmptyNote>
               ) : (
                 saved.items.map((key) => {
                   const items = key.split("+").map((id) => catalog.items.find((i) => i.id === id)).filter((i): i is CatalogItem => !!i);
@@ -43,7 +43,7 @@ export default function Saved() {
                   const total = items.reduce((s, i) => s + i.price, 0);
                   const b = nearestOpen(items[0].chain);
                   return (
-                    <article key={key} className="flex flex-col gap-3 rounded-[20px] border bg-card p-4">
+                    <article key={key} className="flex flex-col gap-3 rounded-[24px] border bg-card p-4">
                       <div className="flex items-start gap-2">
                         <button type="button" onClick={() => openDetail(items)} className="flex min-w-0 flex-1 flex-col gap-1 text-left">
                           <span className="flex items-center gap-2 text-sm">
@@ -57,7 +57,7 @@ export default function Saved() {
                           </span>
                         </button>
                         <button type="button" aria-label="Tanggalin sa saved" onClick={() => toggleItem(key)} className="flex size-11 items-center justify-center rounded-full hover:bg-muted">
-                          <Heart className="size-5 fill-brand text-brand" />
+                          <Heart size={22} weight="fill" className="text-brand" />
                         </button>
                       </div>
                       <Button className="h-11 self-start px-5" disabled={!b} onClick={() => b && confirm(items, b.branch, total)}>
@@ -74,7 +74,7 @@ export default function Saved() {
                 const on = saved.chains.includes(c);
                 const b = nearestOpen(c);
                 return (
-                  <article key={c} className="flex items-center gap-3 rounded-[20px] border bg-card p-4" style={{ borderLeft: `4px solid ${catalog.chains.find((x) => x.id === c)?.color}` }}>
+                  <article key={c} className="flex items-center gap-3 rounded-[24px] border bg-card p-4" style={{ borderLeft: `4px solid ${catalog.chains.find((x) => x.id === c)?.color}` }}>
                     <div className="flex min-w-0 flex-1 flex-col">
                       <span className="font-semibold">{CHAIN_NAMES[c]}</span>
                       <span className="text-sm text-muted-foreground">{b ? `Pinakamalapit: ${b.distance_km.toFixed(1)} km` : "Walang bukas na malapit"}</span>
@@ -85,7 +85,7 @@ export default function Saved() {
                       </Button>
                     )}
                     <button type="button" aria-pressed={on} aria-label={on ? `Tanggalin ang ${CHAIN_NAMES[c]}` : `I-save ang ${CHAIN_NAMES[c]}`} onClick={() => toggleChain(c)} className="flex size-11 items-center justify-center rounded-full hover:bg-muted">
-                      <Heart className={cn("size-5", on ? "fill-brand text-brand" : "text-muted-foreground")} />
+                      <Heart size={22} weight={on ? "fill" : "regular"} className={on ? "text-brand" : "text-muted-foreground"} />
                     </button>
                   </article>
                 );

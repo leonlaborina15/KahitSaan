@@ -6,15 +6,44 @@ import type { ResolvedFilters } from "@/lib/parse/validate";
 import { buildCombos } from "./combos";
 import { distanceKm, isOpen, travelMinutes, type LatLng } from "./distance";
 import { templateReason } from "./reason";
-import { tasteScore, weights } from "./score";
+import { tasteScore } from "./score";
 
 export type SortKey = "best" | "cheap" | "near" | "fast" | "filling";
 export type Speed = "fast" | "ok" | "slow";
+
+export type UnahinKey = keyof SubScores; // cheap | near | filling | fast | taste
 
 export interface ExploreFilters extends ResolvedFilters {
   open_only: boolean;
   /** Hard filter: combo must contain one of these (matched on tags, food_type, name). Empty = any. */
   food_types: string[];
+  /** "Unahin": ranking priorities in tap order. Drives the weights (see unahinWeights). */
+  unahin: UnahinKey[];
+  /** Quick filter "₱100 pababa": hard cap on the total, on top of budget. */
+  max_total: number | null;
+  /** Quick filter "Walang pila": only branches with a fast wait. */
+  fast_only: boolean;
+}
+
+const UNAHIN_BASE = [0.4, 0.3, 0.2, 0.1, 0.05];
+const TASTE_TIEBREAK = 0.05;
+
+/**
+ * Weights follow Unahin tap order (1st 0.4, 2nd 0.3, 3rd 0.2, 4th 0.1, 5th 0.05).
+ * Unselected factors get 0, except taste which keeps a small tiebreak weight.
+ * Request boosts apply on top (gutom na gutom ×2 busog, nagmamadali ×2 bilis), then renormalize.
+ */
+export function unahinWeights(f: ExploreFilters): SubScores {
+  const w: SubScores = { cheap: 0, fast: 0, near: 0, filling: 0, taste: TASTE_TIEBREAK };
+  f.unahin.forEach((k, i) => (w[k] = UNAHIN_BASE[i] ?? 0.05));
+  if (!f.unahin.length) Object.assign(w, { cheap: 0.25, fast: 0.25, near: 0.25, filling: 0.25 });
+  if (f.urgency === "high") w.fast = Math.max(w.fast, 0.05) * 2;
+  if (f.urgency === "low") w.fast *= 0.5;
+  if (f.hunger === "high") w.filling = Math.max(w.filling, 0.05) * 2;
+  if (f.cravings.length) w.taste *= 1.5;
+  const sum = Object.values(w).reduce((a, b) => a + b, 0);
+  for (const k of Object.keys(w) as UnahinKey[]) w[k] /= sum;
+  return w;
 }
 
 export interface OpenStatus {
@@ -127,7 +156,7 @@ export interface ExploreInput {
 }
 
 export function explore({ catalog, filters: f, prefs, taste, here, now = new Date(), sort = "best", excludeItems }: ExploreInput): ItemResult[] {
-  const w = weights(prefs, f);
+  const w = unahinWeights(f);
   const maxKm = Math.min(f.max_distance_km ?? DISTANCE_CAP_KM, DISTANCE_CAP_KM);
   const byKey = new Map<string, { best: ItemResult; branches: Set<string> }>();
 
@@ -136,10 +165,12 @@ export function explore({ catalog, filters: f, prefs, taste, here, now = new Dat
     const opt = branchOption(catalog, branch, here, now);
     if (f.open_only && !opt.status.open) continue;
     if (opt.distance_km > maxKm) continue;
+    if (f.fast_only && opt.speed !== "fast") continue;
     const menu = catalog.items.filter((i) => i.chain === branch.chain && !excludeItems?.has(i.id));
     for (const items of buildCombos(menu, f)) {
       if (!matchesType(items, f.food_types)) continue;
       const total = items.reduce((s, i) => s + i.price, 0);
+      if (f.max_total !== null && total > f.max_total) continue;
       const eta_min = opt.walk_min + opt.wait_min;
       const fillSum = items.reduce((s, i) => s + i.fill_score, 0);
       const sub: SubScores = {

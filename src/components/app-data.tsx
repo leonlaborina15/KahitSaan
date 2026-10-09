@@ -2,10 +2,11 @@
 
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
+import { catalog } from "@/lib/catalog";
 import { parseRules } from "@/lib/parse/rules";
 import { resolveFilters } from "@/lib/parse/validate";
 import type { ExploreFilters } from "@/lib/rank/explore";
-import { EMPTY_TASTE, loadPlace, loadPrefs, loadTaste, recordPick, resetTaste, savePlace, savePrefs, type SavedPlace } from "@/lib/store/db";
+import { DEFAULT_PREFS, EMPTY_TASTE, loadPlace, loadPrefs, loadTaste, recordPick, resetTaste, savePlace, savePrefs, type SavedPlace } from "@/lib/store/db";
 import {
   addHistory, loadHistory, loadSaved, toggleSavedChain, toggleSavedItem, updateHistory, type HistoryEntry, type Saved,
 } from "@/lib/store/history";
@@ -56,12 +57,39 @@ export function filtersFromRequest(text: string, prefs: Prefs, now = new Date())
     ...resolveFilters(parsed, prefs, now),
     open_only: true,
     food_types: parsed.cravings,
+    unahin: [...prefs.priority],
+    max_total: null,
+    fast_only: false,
   };
   const fromSetup = new Set<string>();
   if (parsed.budget === null) fromSetup.add("budget");
   if (parsed.hunger === "normal") fromSetup.add("hunger");
   if (f.avoid.some((a) => !parsed.avoid.includes(a))) fromSetup.add("avoid");
+  fromSetup.add("unahin");
   return { filters: f, fromSetup };
+}
+
+/**
+ * `?demo=1` on first open: skip setup with a sample profile and a Cabanatuan landmark,
+ * so judges (and screenshot runs) land straight on Home. Only fills what's empty.
+ */
+async function seedDemo() {
+  if (typeof window === "undefined" || new URLSearchParams(window.location.search).get("demo") !== "1") return;
+  if (!(await loadPrefs()))
+    await savePrefs({
+      ...DEFAULT_PREFS,
+      usual_budget: 150,
+      favorite_foods: ["chicken", "rice", "spaghetti"],
+      appetite: "big",
+      avoid_pork: true,
+      priority: ["cheap", "filling", "near", "fast"],
+      favorite_chains: ["jollibee", "mang-inasal"],
+      created_at: new Date().toISOString(),
+    });
+  if (!(await loadPlace())) {
+    const l = catalog.landmarks.find((x) => x.id === "public-market") ?? catalog.landmarks[0];
+    await savePlace({ lat: l.lat, lng: l.lng, label: l.name, source: "landmark" });
+  }
 }
 
 export function AppDataProvider({ children }: { children: React.ReactNode }) {
@@ -76,15 +104,6 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [detail, setDetail] = useState<AppData["detail"]>(null);
   const locTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  useEffect(() => {
-    void Promise.all([loadPrefs(), loadTaste(), loadHistory(), loadSaved()]).then(([p, t, h, s]) => {
-      setPrefsState(p ?? null);
-      setTaste(t);
-      setHistory(h);
-      setSaved(s);
-      setReady(true);
-    });
-  }, []);
 
   /** GPS once (5 s timeout), else saved landmark, else ask (SPEC §10). */
   const locate = useCallback(() => {
@@ -114,7 +133,19 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
     locTimer.current = setTimeout(fallback, 6000);
   }, []);
 
-  useEffect(locate, [locate]);
+
+  useEffect(() => {
+    // Seed first (demo links), then read stored data and start locating.
+    void seedDemo().then(() => Promise.all([loadPrefs(), loadTaste(), loadHistory(), loadSaved()])).then(([p, t, h, s]) => {
+      locate();
+      setPrefsState(p ?? null);
+      setTaste(t);
+      setHistory(h);
+      setSaved(s);
+      setReady(true);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const value: AppData = {
     ready,

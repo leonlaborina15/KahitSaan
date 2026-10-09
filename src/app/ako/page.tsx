@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronRight, Cpu, Download, Info, MapPin, ShieldCheck, SlidersHorizontal, Trash } from "lucide-react";
+import { CaretRight, Cpu, DownloadSimple, Info, MapPin, ShieldCheck, SlidersHorizontal, Trash } from "@phosphor-icons/react";
+import { Kanin } from "@/components/kanin";
 import { useState } from "react";
 import { toast } from "sonner";
 import { AiStatusPill, useAiStatus } from "@/components/ai-status";
@@ -18,12 +19,12 @@ const PRIORITY_LABELS = { cheap: "Mura", fast: "Mabilis", near: "Malapit", filli
 const APPETITE_LABELS = { light: "Konti lang", normal: "Sakto", big: "Malakas kumain" };
 const AVOID_LABELS: Record<string, string> = { beef: "Baka", seafood: "Seafood", spicy: "Maanghang" };
 
-function Section({ Icon, title, children }: { Icon: typeof Info; title: string; children: React.ReactNode }) {
+function Section({ Icon, title, children, ube = false }: { Icon: typeof Info; title: string; children: React.ReactNode; ube?: boolean }) {
   return (
-    <section className="flex flex-col gap-2 rounded-[20px] border bg-card p-4">
+    <section className="flex flex-col gap-2 rounded-[24px] border bg-card p-4">
       <h2 className="mb-1 flex items-center gap-2 text-base">
-        <span className="flex size-9 items-center justify-center rounded-xl bg-primary-soft text-primary" aria-hidden>
-          <Icon className="size-5" />
+        <span className={ube ? "flex size-9 items-center justify-center rounded-[14px] bg-ube-soft text-ube" : "flex size-9 items-center justify-center rounded-[14px] bg-primary-soft text-primary"} aria-hidden>
+          <Icon size={22} weight="duotone" />
         </span>
         {title}
       </h2>
@@ -35,10 +36,10 @@ function Section({ Icon, title, children }: { Icon: typeof Info; title: string; 
 /** A tappable default that opens its setup step. */
 function EditRow({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="flex min-h-12 items-center gap-3 rounded-[14px] px-2 text-left hover:bg-muted">
+    <button type="button" onClick={onClick} className="flex min-h-12 items-center gap-3 rounded-[16px] px-2 text-left hover:bg-muted">
       <span className="w-24 shrink-0 text-sm text-muted-foreground">{label}</span>
       <span className="flex-1 truncate text-sm font-semibold">{value}</span>
-      <ChevronRight className="size-5 text-muted-foreground" aria-hidden />
+      <CaretRight size={18} className="text-muted-foreground" aria-hidden />
     </button>
   );
 }
@@ -71,7 +72,10 @@ export default function Ako() {
   return (
     <AppShell>
       <div className="flex flex-col gap-4 py-2">
-        <h1 className="text-[28px]">Ako</h1>
+        <div className="flex items-center gap-3">
+          <Kanin mood="happy" size={56} />
+          <h1 className="text-[32px]">Ako</h1>
+        </div>
 
         <Section Icon={SlidersHorizontal} title="Defaults">
           <p className="px-2 text-xs text-muted-foreground">Default lang ito. Pag may sinabi ka sa search, yun ang masusunod.</p>
@@ -105,7 +109,7 @@ export default function Ako() {
           <EditRow label="Default area" value={place?.label ?? "Wala pa"} onClick={() => setLocOpen(true)} />
         </Section>
 
-        <Section Icon={Cpu} title="AI sa phone mo">
+        <Section Icon={Cpu} title="AI sa phone mo" ube>
           <div className="flex items-center justify-between px-2 text-sm">
             <span className="text-muted-foreground">Status</span>
             <AiStatusPill status={ai} />
@@ -113,14 +117,14 @@ export default function Ako() {
           <p className="px-2 text-sm">Model: Qwen2.5 1.5B · ~1 GB, isang download lang</p>
           <p className="px-2 text-sm text-muted-foreground">Basic mode muna sa ngayon. Gumagana pa rin ang paghahanap, kahit offline.</p>
           <Button variant="outline" className="h-11" disabled>
-            <Download className="size-5" aria-hidden /> I-download ulit
+            <DownloadSimple size={20} aria-hidden /> I-download ulit
           </Button>
         </Section>
 
         <Section Icon={ShieldCheck} title="Privacy">
           <p className="px-2 text-sm">Nasa phone mo lang lahat. Walang account, walang server, walang tracking.</p>
           <Button variant="destructive" className="h-11" onClick={() => setConfirmOpen(true)}>
-            <Trash className="size-5" aria-hidden /> Burahin lahat
+            <Trash size={20} aria-hidden /> Burahin lahat
           </Button>
         </Section>
 

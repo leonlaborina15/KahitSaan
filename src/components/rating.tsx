@@ -1,6 +1,6 @@
 "use client";
 
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { ThumbsDown, ThumbsUp } from "@phosphor-icons/react";
 import { useApp } from "@/components/app-data";
 import type { HistoryEntry } from "@/lib/store/history";
 import { cn } from "@/lib/utils";
@@ -18,7 +18,7 @@ export function RatingButtons({ h }: { h: HistoryEntry }) {
         h.rating === val ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground",
       )}
     >
-      <Icon className="size-5" />
+      <Icon size={20} weight={h.rating === val ? "fill" : "regular"} />
     </button>
   );
   return (

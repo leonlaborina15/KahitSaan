@@ -1,6 +1,7 @@
 "use client";
 
-import { Check, LocateFixed, MapPin, MapPinOff } from "lucide-react";
+import { Check, Crosshair, MapPin } from "@phosphor-icons/react";
+import { Kanin } from "@/components/kanin";
 import { useState } from "react";
 import { useApp } from "@/components/app-data";
 import { Button } from "@/components/ui/button";
@@ -10,10 +11,10 @@ import { cn } from "@/lib/utils";
 
 export function LocationSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { place, pickPlace, locate } = useApp();
-  const row = "flex min-h-12 w-full items-center gap-3 rounded-[14px] border bg-card px-4 text-left text-sm font-medium hover:border-brand/50";
+  const row = "flex min-h-12 w-full items-center gap-3 rounded-[16px] border bg-card px-4 text-left text-sm font-medium hover:border-brand/50";
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="mx-auto max-w-[440px] rounded-t-[20px] px-5 pb-8">
+      <SheetContent side="bottom" className="mx-auto max-w-[440px] rounded-t-[28px] px-5 pb-8">
         <SheetHeader className="px-0">
           <SheetTitle>Nasaan ka?</SheetTitle>
           <SheetDescription>Para malaman namin kung ano&apos;ng malapit sa&apos;yo.</SheetDescription>
@@ -27,7 +28,7 @@ export function LocationSheet({ open, onOpenChange }: { open: boolean; onOpenCha
               onOpenChange(false);
             }}
           >
-            <LocateFixed className="size-5 text-primary" aria-hidden /> Gamitin ang GPS ko
+            <Crosshair size={20} weight="duotone" className="text-primary" aria-hidden /> Gamitin ang GPS ko
           </button>
           <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Mga lugar sa Cabanatuan</p>
           {catalog.landmarks.map((l) => {
@@ -43,8 +44,8 @@ export function LocationSheet({ open, onOpenChange }: { open: boolean; onOpenCha
                   onOpenChange(false);
                 }}
               >
-                <MapPin className="size-5" aria-hidden /> <span className="flex-1">{l.name}</span>
-                {on && <Check className="size-4" strokeWidth={3} aria-hidden />}
+                <MapPin size={20} weight="duotone" aria-hidden /> <span className="flex-1">{l.name}</span>
+                {on && <Check size={16} weight="bold" aria-hidden />}
               </button>
             );
           })}
@@ -61,8 +62,8 @@ export function LocationRow() {
   return (
     <>
       {locStatus === "need-pick" ? (
-        <div className="flex items-center gap-3 rounded-[14px] border bg-card p-3 text-sm" role="status">
-          <MapPinOff className="size-5 shrink-0 text-primary" aria-hidden />
+        <div className="flex items-center gap-3 rounded-[16px] border bg-card p-3 text-sm" role="status">
+          <Kanin mood="shocked" size={40} />
           <span className="flex-1">Hindi ko makita ang lokasyon mo.</span>
           <Button size="sm" className="h-11 px-4" onClick={() => setOpen(true)}>
             Pumili ng lugar
@@ -70,7 +71,7 @@ export function LocationRow() {
         </div>
       ) : (
         <div className="flex min-h-11 items-center gap-2 text-sm">
-          <MapPin className="size-5 shrink-0 text-primary" aria-hidden />
+          <MapPin size={20} weight="fill" className="shrink-0 text-primary" aria-hidden />
           <span className="flex-1 truncate">
             {locStatus === "locating" ? (
               <span className="text-muted-foreground">Hinahanap ang lokasyon mo…</span>

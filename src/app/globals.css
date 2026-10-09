@@ -2,12 +2,15 @@
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
 
-/* KahitSaan design tokens. Light only. */
+/* KahitSaan v2 tokens. Same names in light + dark. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-jakarta);
-  --font-heading: var(--font-jakarta);
+  --font-heading: var(--font-bricolage);
+  --font-display: var(--font-bricolage);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -22,48 +25,87 @@
   --color-primary: var(--primary);
   --color-primary-soft: var(--primary-soft);
   --color-brand: var(--brand);
+  --color-mangga: var(--mangga);
   --color-success: var(--success);
+  --color-success-ink: var(--success-ink);
   --color-warning: var(--warning);
+  --color-warning-ink: var(--warning-ink);
+  --color-ube: var(--ube);
+  --color-ube-soft: var(--ube-soft);
+  --color-surface-2: var(--surface-2);
   --color-popover-foreground: var(--popover-foreground);
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --radius-sm: 8px;
   --radius-md: 12px;
-  --radius-lg: 14px; /* buttons */
-  --radius-xl: 16px;
-  --radius-2xl: 20px; /* cards */
-  --radius-3xl: 24px;
-  --radius-4xl: 28px;
-  --shadow-raised: 0 8px 24px -12px rgb(28 25 23 / 0.18), 0 2px 6px -2px rgb(28 25 23 / 0.06);
+  --radius-lg: 16px; /* buttons */
+  --radius-xl: 18px;
+  --radius-2xl: 24px; /* cards */
+  --radius-3xl: 28px;
+  --radius-4xl: 32px;
+  --shadow-raised: 0 1px 2px rgb(26 20 16 / 0.04), 0 6px 16px -6px rgb(26 20 16 / 0.10), 0 18px 40px -16px rgb(226 72 44 / 0.18);
+  --shadow-soft: 0 1px 2px rgb(26 20 16 / 0.04), 0 8px 24px -12px rgb(26 20 16 / 0.12);
 }
 
 :root {
-  --radius: 14px;
-  --background: #fff8f1;
-  --foreground: #1c1917;
+  --radius: 16px;
+  --background: #fffbf5;
+  --foreground: #1a1410;
   --card: #ffffff;
-  --card-foreground: #1c1917;
+  --card-foreground: #1a1410;
   --popover: #ffffff;
-  --popover-foreground: #1c1917;
-  /* Brand orange is #E8552D. Filled buttons/selected states use a slightly deeper
-     shade so white text passes WCAG AA (4.5:1); #E8552D stays for dots, bars, icons. */
-  --brand: #e8552d;
-  --primary: #cc4420;
+  --popover-foreground: #1a1410;
+  --surface-2: #fff3e6;
+  /* Sili #E2482C. Filled buttons use a deeper shade so white text passes AA (4.5:1). */
+  --brand: #e2482c;
+  --primary: #c93a20;
   --primary-foreground: #ffffff;
-  --primary-soft: #fde7df;
-  --secondary: #fde7df;
-  --secondary-foreground: #1c1917;
-  --muted: #f5efe8;
-  --muted-foreground: #6f6863;
-  --accent: #fde7df;
-  --accent-foreground: #1c1917;
+  --primary-soft: #ffe4dc;
+  --mangga: #ffc23d;
+  --ube: #6c4cf1;
+  --ube-soft: #efeaff;
+  --secondary: #fff3e6;
+  --secondary-foreground: #1a1410;
+  --muted: #fff3e6;
+  --muted-foreground: #6e625a;
+  --accent: #ffe4dc;
+  --accent-foreground: #1a1410;
   --destructive: #c2410c;
-  --success: #2f9e6b;
-  --warning: #e9a23b;
-  --border: #ede6de;
-  --input: #ede6de;
-  --ring: #e8552d;
+  --success: #1fa36a;
+  --success-ink: #13744a;
+  --warning: #f29a1f;
+  --warning-ink: #8a5208;
+  --border: #f0e6da;
+  --input: #f0e6da;
+  --ring: #e2482c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #16110d;
+    --foreground: #fbf3ea;
+    --card: #221a15;
+    --card-foreground: #fbf3ea;
+    --popover: #221a15;
+    --popover-foreground: #fbf3ea;
+    --surface-2: #2c221b;
+    --brand: #ff6a4d;
+    --primary: #e2482c;
+    --primary-soft: #4a2219;
+    --ube: #9d86ff;
+    --ube-soft: #2a2245;
+    --secondary: #2c221b;
+    --secondary-foreground: #fbf3ea;
+    --muted: #2c221b;
+    --muted-foreground: #b8aaa0;
+    --accent: #4a2219;
+    --accent-foreground: #fbf3ea;
+    --success-ink: #5fd39f;
+    --warning-ink: #ffbf66;
+    --border: #3a2e26;
+    --input: #3a2e26;
+  }
 }
 
 @layer base {
@@ -76,21 +118,36 @@
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
-  h1, h2, h3 {
+  h1, h2, h3, .font-display {
+    font-family: var(--font-bricolage), var(--font-jakarta), sans-serif;
     @apply font-bold tracking-tight;
   }
   :focus-visible {
     outline: 3px solid var(--ring);
     outline-offset: 2px;
   }
+  /* Springy tap feedback on every button. */
+  button:not(:disabled), a[role="button"], .tap {
+    transition: transform 160ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  button:not(:disabled):active, .tap:active {
+    transform: scale(0.97);
+  }
 }
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { scrollbar-width: none; }
 
+@keyframes ks-bob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+/* Pulse uses outline so it never replaces the mangga ring (box-shadow). */
+@keyframes ks-pulse { 0%, 85%, 100% { outline: 0 solid rgb(255 194 61 / 0.7); outline-offset: 0; } 92% { outline: 8px solid rgb(255 194 61 / 0); outline-offset: 6px; } }
+.animate-bob { animation: ks-bob 1.6s ease-in-out infinite; }
+.animate-ks-pulse { animation: ks-pulse 4s ease-out infinite; }
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
 }

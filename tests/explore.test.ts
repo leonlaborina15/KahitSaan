@@ -115,3 +115,38 @@ describe("Kahit Saan", () => {
     for (const x of [0, 0.3, 0.6, 0.99]) expect(top5.has(pickWeighted(list, () => x)!.key)).toBe(true);
   });
 });
+
+describe("stackable filtering (Unahin + quick filters)", () => {
+  const base = () => filtersFromRequest("", prefs, noon).filters;
+  const go = (f: ReturnType<typeof base>) => explore({ catalog, filters: f, prefs, taste: EMPTY_TASTE, here, now: noon });
+
+  it("Unahin tap order sets weights 0.4/0.3/0.2/0.1 (renormalized)", async () => {
+    const { unahinWeights } = await import("@/lib/rank/explore");
+    const w = unahinWeights({ ...base(), unahin: ["cheap", "near"], hunger: "normal", urgency: "normal", cravings: [] });
+    expect(w.cheap).toBeGreaterThan(w.near);
+    expect(w.near).toBeGreaterThan(w.taste);
+    expect(w.filling).toBe(0);
+    expect(w.fast).toBe(0);
+    expect(Object.values(w).reduce((a, b) => a + b, 0)).toBeCloseTo(1);
+  });
+
+  it("Mura first puts the cheapest on top; Malapit first puts the nearest on top", () => {
+    const cheap = go({ ...base(), unahin: ["cheap"] });
+    expect(cheap[0].total).toBe(Math.min(...cheap.map((r) => r.total)));
+    const near = go({ ...base(), unahin: ["near"] });
+    expect(near[0].distance_km).toBe(Math.min(...near.map((r) => r.distance_km)));
+  });
+
+  it("quick filters stack as hard filters", () => {
+    const f = { ...base(), max_total: 100, max_distance_km: 1, food_types: ["rice"], fast_only: true };
+    const all = go(base()).length;
+    const list = go(f);
+    expect(list.length).toBeLessThan(all);
+    for (const r of list) {
+      expect(r.total).toBeLessThanOrEqual(100);
+      expect(r.distance_km).toBeLessThanOrEqual(1);
+      expect(r.speed).toBe("fast");
+      expect(r.items.some((i) => i.tags.includes("rice") || i.name.toLowerCase().includes("rice"))).toBe(true);
+    }
+  });
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, type LucideIcon } from "lucide-react";
+import { Check, type Icon } from "@phosphor-icons/react";
 import { cn } from "@/lib/utils";
 
 /** The one selected style used everywhere: primary fill + white text + check. */
@@ -16,7 +16,7 @@ export function SelectTile({
 }: {
   on: boolean;
   onClick: () => void;
-  Icon?: LucideIcon;
+  Icon?: Icon;
   label: string;
   helper?: string;
   badge?: React.ReactNode;
@@ -31,17 +31,17 @@ export function SelectTile({
       onClick={onClick}
       style={accent ? { borderLeft: `6px solid ${accent}` } : undefined}
       className={cn(
-        "relative flex min-h-11 rounded-2xl border text-left transition-colors duration-150",
+        "relative flex min-h-11 rounded-[24px] border text-left transition-colors duration-150",
         layout === "tile" ? "flex-col items-center justify-center gap-2 p-3 text-center" : "items-center gap-4 p-4",
-        on ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:border-brand/50",
+        on ? "border-primary bg-primary text-primary-foreground shadow-[var(--shadow-soft)]" : "bg-card hover:border-brand/50",
       )}
     >
       {Icon && (
         <span
-          className={cn("flex size-10 shrink-0 items-center justify-center rounded-xl", on ? "bg-white/20" : "bg-primary-soft text-primary")}
+          className={cn("flex size-11 shrink-0 items-center justify-center rounded-[16px]", on ? "bg-white/20" : "bg-surface-2 text-primary")}
           aria-hidden
         >
-          <Icon className="size-5" />
+          <Icon size={24} weight="duotone" />
         </span>
       )}
       <span className="flex flex-col">
@@ -51,14 +51,28 @@ export function SelectTile({
       {badge ??
         (on && (
           <span className="absolute right-2 top-2 flex size-5 items-center justify-center rounded-full bg-white text-primary" aria-hidden>
-            <Check className="size-3.5" strokeWidth={3} />
+            <Check size={12} weight="bold" />
           </span>
         ))}
     </button>
   );
 }
 
-export function SelectChip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
+export function SelectChip({
+  on,
+  onClick,
+  children,
+  rank,
+  tag,
+}: {
+  on: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+  /** Unahin order badge. */
+  rank?: number;
+  /** Tiny "setup" tag. */
+  tag?: string;
+}) {
   return (
     <button
       type="button"
@@ -69,8 +83,15 @@ export function SelectChip({ on, onClick, children }: { on: boolean; onClick: ()
         on ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:border-brand/50",
       )}
     >
-      {on && <Check className="size-4" strokeWidth={3} aria-hidden />}
+      {on && rank !== undefined ? (
+        <span className="flex size-5 items-center justify-center rounded-full bg-white text-[11px] font-bold text-primary" aria-label={`Pang-${rank}`}>
+          {rank}
+        </span>
+      ) : (
+        on && <Check size={16} weight="bold" aria-hidden />
+      )}
       {children}
+      {tag && <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-medium", on ? "bg-white/20" : "bg-muted text-muted-foreground")}>{tag}</span>}
     </button>
   );
 }
