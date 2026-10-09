@@ -189,7 +189,7 @@ score = Σ w_k * sub_k
 **Request overrides** (applied then re-normalized to sum 1):
 - `urgency high` → `fast × 2`; `urgency low` → `fast × 0.5`
 - `max_distance_km ≤ 1` → `near × 1.5`
-- `hunger high` → `filling × 1.5`
+- `hunger high` → `filling × 2`
 - `cravings` not empty → `taste × 1.5`
 
 Return the best result + 2 alternatives, max one result per branch for variety.

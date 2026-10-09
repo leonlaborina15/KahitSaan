@@ -1,67 +1,15 @@
 "use client";
 
-import { Check, LocateFixed, MapPin } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { Check, LocateFixed, MapPin, MapPinOff } from "lucide-react";
+import { useState } from "react";
+import { useApp } from "@/components/app-data";
+import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { catalog } from "@/lib/catalog";
-import { loadPlace, savePlace, type SavedPlace } from "@/lib/store/db";
 import { cn } from "@/lib/utils";
 
-/** GPS once (5 s timeout), else saved place, else ask for a landmark (SPEC §10). */
-export function useLocation() {
-  const [place, setPlace] = useState<SavedPlace | null>(null);
-  const [status, setStatus] = useState<"locating" | "ready" | "need-pick">("locating");
-
-  const locate = useCallback(() => {
-    let done = false;
-    setStatus("locating");
-    const fallback = async () => {
-      if (done) return;
-      done = true;
-      const saved = await loadPlace();
-      if (saved?.source === "landmark") {
-        setPlace(saved);
-        setStatus("ready");
-      } else setStatus("need-pick");
-    };
-    if (!("geolocation" in navigator)) return void fallback();
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (done) return;
-        done = true;
-        setPlace({ lat: pos.coords.latitude, lng: pos.coords.longitude, label: "Lokasyon mo ngayon", source: "gps" });
-        setStatus("ready");
-      },
-      fallback,
-      { timeout: 5000, maximumAge: 60_000 },
-    );
-    setTimeout(fallback, 6000);
-  }, []);
-
-  useEffect(locate, [locate]);
-
-  const pick = (p: SavedPlace) => {
-    setPlace(p);
-    setStatus("ready");
-    void savePlace(p);
-  };
-
-  return { place, status, pick, locate };
-}
-
-export function LocationSheet({
-  open,
-  onOpenChange,
-  current,
-  onPick,
-  onGps,
-}: {
-  open: boolean;
-  onOpenChange: (o: boolean) => void;
-  current: SavedPlace | null;
-  onPick: (p: SavedPlace) => void;
-  onGps: () => void;
-}) {
+export function LocationSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const { place, pickPlace, locate } = useApp();
   const row = "flex min-h-12 w-full items-center gap-3 rounded-[14px] border bg-card px-4 text-left text-sm font-medium hover:border-brand/50";
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -75,7 +23,7 @@ export function LocationSheet({
             type="button"
             className={row}
             onClick={() => {
-              onGps();
+              locate();
               onOpenChange(false);
             }}
           >
@@ -83,7 +31,7 @@ export function LocationSheet({
           </button>
           <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Mga lugar sa Cabanatuan</p>
           {catalog.landmarks.map((l) => {
-            const on = current?.source === "landmark" && current.label === l.name;
+            const on = place?.source === "landmark" && place.label === l.name;
             return (
               <button
                 key={l.id}
@@ -91,7 +39,7 @@ export function LocationSheet({
                 aria-pressed={on}
                 className={cn(row, on && "border-primary bg-primary text-primary-foreground")}
                 onClick={() => {
-                  onPick({ lat: l.lat, lng: l.lng, label: l.name, source: "landmark" });
+                  pickPlace({ lat: l.lat, lng: l.lng, label: l.name, source: "landmark" });
                   onOpenChange(false);
                 }}
               >
@@ -103,5 +51,41 @@ export function LocationSheet({
         </div>
       </SheetContent>
     </Sheet>
+  );
+}
+
+/** "Malapit sa: X · Palitan", or the location-denied prompt. Owns its sheet. */
+export function LocationRow() {
+  const { place, locStatus } = useApp();
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      {locStatus === "need-pick" ? (
+        <div className="flex items-center gap-3 rounded-[14px] border bg-card p-3 text-sm" role="status">
+          <MapPinOff className="size-5 shrink-0 text-primary" aria-hidden />
+          <span className="flex-1">Hindi ko makita ang lokasyon mo.</span>
+          <Button size="sm" className="h-11 px-4" onClick={() => setOpen(true)}>
+            Pumili ng lugar
+          </Button>
+        </div>
+      ) : (
+        <div className="flex min-h-11 items-center gap-2 text-sm">
+          <MapPin className="size-5 shrink-0 text-primary" aria-hidden />
+          <span className="flex-1 truncate">
+            {locStatus === "locating" ? (
+              <span className="text-muted-foreground">Hinahanap ang lokasyon mo…</span>
+            ) : (
+              <>
+                Malapit sa: <span className="font-semibold">{place?.label}</span>
+              </>
+            )}
+          </span>
+          <button type="button" onClick={() => setOpen(true)} className="min-h-11 px-2 font-semibold text-primary">
+            Palitan
+          </button>
+        </div>
+      )}
+      <LocationSheet open={open} onOpenChange={setOpen} />
+    </>
   );
 }

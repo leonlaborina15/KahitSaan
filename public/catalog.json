@@ -20,7 +20,9 @@
    "fill_score": 3,
    "prep_minutes": 4,
    "serves": 1,
-   "desc": "Crispy fried chicken with rice and gravy"
+   "desc": "Crispy fried chicken with rice and gravy",
+   "food_type": "chicken",
+   "includes": "Crispy fried chicken with rice and gravy. May kasamang kanin."
   },
   {
    "id": "jb-2-pc-chickenjoy-with-rice",
@@ -39,7 +41,9 @@
    "fill_score": 5,
    "prep_minutes": 5,
    "serves": 1,
-   "desc": "Two pieces of crispy fried chicken with rice"
+   "desc": "Two pieces of crispy fried chicken with rice",
+   "food_type": "chicken",
+   "includes": "Two pieces of crispy fried chicken with rice. May kasamang kanin."
   },
   {
    "id": "jb-jolly-spaghetti",
@@ -59,7 +63,9 @@
    "fill_score": 2,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Sweet-style spaghetti with hotdog slices"
+   "desc": "Sweet-style spaghetti with hotdog slices",
+   "food_type": "pasta",
+   "includes": "Sweet-style spaghetti with hotdog slices."
   },
   {
    "id": "jb-chickenjoy-with-jolly-spaghetti",
@@ -79,7 +85,9 @@
    "fill_score": 4,
    "prep_minutes": 5,
    "serves": 1,
-   "desc": "Chickenjoy plus Jolly Spaghetti"
+   "desc": "Chickenjoy plus Jolly Spaghetti",
+   "food_type": "pasta",
+   "includes": "Chickenjoy plus Jolly Spaghetti. May kasamang kanin."
   },
   {
    "id": "jb-yumburger",
@@ -97,7 +105,9 @@
    "fill_score": 1,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Classic small beef burger"
+   "desc": "Classic small beef burger",
+   "food_type": "burger",
+   "includes": "Classic small beef burger."
   },
   {
    "id": "jb-burger-steak-with-rice",
@@ -117,7 +127,9 @@
    "fill_score": 3,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Beef patty with mushroom gravy and rice"
+   "desc": "Beef patty with mushroom gravy and rice",
+   "food_type": "rice meal",
+   "includes": "Beef patty with mushroom gravy and rice. May kasamang kanin."
   },
   {
    "id": "jb-palabok-fiesta",
@@ -136,7 +148,9 @@
    "fill_score": 3,
    "prep_minutes": 4,
    "serves": 1,
-   "desc": "Rice noodles with shrimp sauce and toppings"
+   "desc": "Rice noodles with shrimp sauce and toppings",
+   "food_type": "pasta",
+   "includes": "Rice noodles with shrimp sauce and toppings."
   },
   {
    "id": "jb-jolly-crispy-fries",
@@ -153,7 +167,9 @@
    "fill_score": 1,
    "prep_minutes": 2,
    "serves": 1,
-   "desc": "Regular fries"
+   "desc": "Regular fries",
+   "food_type": "snack",
+   "includes": "Regular fries."
   },
   {
    "id": "jb-coke-regular",
@@ -171,7 +187,9 @@
    "fill_score": 0,
    "prep_minutes": 1,
    "serves": 1,
-   "desc": "Regular softdrink"
+   "desc": "Regular softdrink",
+   "food_type": "drink",
+   "includes": "Regular softdrink."
   },
   {
    "id": "jb-peach-mango-pie",
@@ -190,7 +208,9 @@
    "fill_score": 1,
    "prep_minutes": 2,
    "serves": 1,
-   "desc": "Fried pie with peach-mango filling"
+   "desc": "Fried pie with peach-mango filling",
+   "food_type": "dessert",
+   "includes": "Fried pie with peach-mango filling."
   },
   {
    "id": "jb-chickenjoy-bucket-6-pc",
@@ -209,7 +229,9 @@
    "fill_score": 10,
    "prep_minutes": 8,
    "serves": 4,
-   "desc": "Six pieces of Chickenjoy for sharing"
+   "desc": "Six pieces of Chickenjoy for sharing",
+   "food_type": "chicken",
+   "includes": "Good for 4. Six pieces of Chickenjoy for sharing"
   },
   {
    "id": "mc-1-pc-chicken-mcdo-with-rice",
@@ -228,7 +250,9 @@
    "fill_score": 3,
    "prep_minutes": 4,
    "serves": 1,
-   "desc": "Fried chicken with rice"
+   "desc": "Fried chicken with rice",
+   "food_type": "chicken",
+   "includes": "Fried chicken with rice. May kasamang kanin."
   },
   {
    "id": "mc-mcspaghetti",
@@ -246,7 +270,9 @@
    "fill_score": 2,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Spaghetti with meat sauce"
+   "desc": "Spaghetti with meat sauce",
+   "food_type": "pasta",
+   "includes": "Spaghetti with meat sauce."
   },
   {
    "id": "mc-burger-mcdo",
@@ -264,7 +290,9 @@
    "fill_score": 1,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Small beef burger"
+   "desc": "Small beef burger",
+   "food_type": "burger",
+   "includes": "Small beef burger."
   },
   {
    "id": "mc-cheeseburger",
@@ -283,7 +311,9 @@
    "fill_score": 2,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Beef burger with cheese"
+   "desc": "Beef burger with cheese",
+   "food_type": "burger",
+   "includes": "Beef burger with cheese."
   },
   {
    "id": "mc-big-mac",
@@ -301,7 +331,9 @@
    "fill_score": 3,
    "prep_minutes": 4,
    "serves": 1,
-   "desc": "Two beef patties, special sauce"
+   "desc": "Two beef patties, special sauce",
+   "food_type": "burger",
+   "includes": "Two beef patties, special sauce."
   },
   {
    "id": "mc-mccrispy-chicken-fillet-with-rice",
@@ -320,7 +352,9 @@
    "fill_score": 3,
    "prep_minutes": 4,
    "serves": 1,
-   "desc": "Chicken fillet with rice and gravy"
+   "desc": "Chicken fillet with rice and gravy",
+   "food_type": "chicken",
+   "includes": "Chicken fillet with rice and gravy. May kasamang kanin."
   },
   {
    "id": "mc-fries-medium",
@@ -337,7 +371,9 @@
    "fill_score": 2,
    "prep_minutes": 2,
    "serves": 1,
-   "desc": "Medium fries"
+   "desc": "Medium fries",
+   "food_type": "snack",
+   "includes": "Medium fries."
   },
   {
    "id": "mc-coke-medium",
@@ -355,7 +391,9 @@
    "fill_score": 0,
    "prep_minutes": 1,
    "serves": 1,
-   "desc": "Medium softdrink"
+   "desc": "Medium softdrink",
+   "food_type": "drink",
+   "includes": "Medium softdrink."
   },
   {
    "id": "mc-mcflurry-oreo",
@@ -374,7 +412,9 @@
    "fill_score": 1,
    "prep_minutes": 2,
    "serves": 1,
-   "desc": "Soft serve with Oreo"
+   "desc": "Soft serve with Oreo",
+   "food_type": "dessert",
+   "includes": "Soft serve with Oreo."
   },
   {
    "id": "mc-chicken-mcdo-6-pc-bucket",
@@ -393,7 +433,9 @@
    "fill_score": 10,
    "prep_minutes": 8,
    "serves": 4,
-   "desc": "Six pieces of Chicken McDo"
+   "desc": "Six pieces of Chicken McDo",
+   "food_type": "chicken",
+   "includes": "Good for 4. Six pieces of Chicken McDo"
   },
   {
    "id": "mi-paa-large-with-rice-pm1",
@@ -414,7 +456,9 @@
    "fill_score": 5,
    "prep_minutes": 8,
    "serves": 1,
-   "desc": "Grilled chicken leg quarter with unli-rice"
+   "desc": "Grilled chicken leg quarter with unli-rice",
+   "food_type": "chicken",
+   "includes": "Grilled chicken leg quarter with unli-rice. May kasamang kanin."
   },
   {
    "id": "mi-pecho-large-with-rice-pm2",
@@ -435,7 +479,9 @@
    "fill_score": 5,
    "prep_minutes": 8,
    "serves": 1,
-   "desc": "Grilled chicken breast with unli-rice"
+   "desc": "Grilled chicken breast with unli-rice",
+   "food_type": "chicken",
+   "includes": "Grilled chicken breast with unli-rice. May kasamang kanin."
   },
   {
    "id": "mi-pork-bbq-2-sticks-with-rice",
@@ -456,7 +502,9 @@
    "fill_score": 4,
    "prep_minutes": 8,
    "serves": 1,
-   "desc": "Two pork barbecue sticks with unli-rice"
+   "desc": "Two pork barbecue sticks with unli-rice",
+   "food_type": "rice meal",
+   "includes": "Two pork barbecue sticks with unli-rice. May kasamang kanin."
   },
   {
    "id": "mi-pork-sisig-with-rice",
@@ -477,7 +525,9 @@
    "fill_score": 4,
    "prep_minutes": 6,
    "serves": 1,
-   "desc": "Sizzling pork sisig with unli-rice"
+   "desc": "Sizzling pork sisig with unli-rice",
+   "food_type": "sisig",
+   "includes": "Sizzling pork sisig with unli-rice. May kasamang kanin."
   },
   {
    "id": "mi-bangus-sisig-with-rice",
@@ -498,7 +548,9 @@
    "fill_score": 4,
    "prep_minutes": 6,
    "serves": 1,
-   "desc": "Milkfish sisig with unli-rice"
+   "desc": "Milkfish sisig with unli-rice",
+   "food_type": "sisig",
+   "includes": "Milkfish sisig with unli-rice. May kasamang kanin."
   },
   {
    "id": "mi-palabok-solo",
@@ -516,7 +568,9 @@
    "fill_score": 2,
    "prep_minutes": 4,
    "serves": 1,
-   "desc": "Rice noodles in shrimp sauce"
+   "desc": "Rice noodles in shrimp sauce",
+   "food_type": "pasta",
+   "includes": "Rice noodles in shrimp sauce."
   },
   {
    "id": "mi-halo-halo-regular",
@@ -535,7 +589,9 @@
    "fill_score": 2,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Shaved ice with sweet beans and leche flan"
+   "desc": "Shaved ice with sweet beans and leche flan",
+   "food_type": "dessert",
+   "includes": "Shaved ice with sweet beans and leche flan."
   },
   {
    "id": "mi-iced-tea-regular",
@@ -553,7 +609,9 @@
    "fill_score": 0,
    "prep_minutes": 1,
    "serves": 1,
-   "desc": "House blend iced tea"
+   "desc": "House blend iced tea",
+   "food_type": "drink",
+   "includes": "House blend iced tea."
   },
   {
    "id": "mi-extra-rice",
@@ -570,7 +628,9 @@
    "fill_score": 1,
    "prep_minutes": 1,
    "serves": 1,
-   "desc": "Additional cup of rice"
+   "desc": "Additional cup of rice",
+   "food_type": "rice meal",
+   "includes": "Additional cup of rice."
   },
   {
    "id": "mi-family-fiesta-4-pax",
@@ -591,7 +651,9 @@
    "fill_score": 16,
    "prep_minutes": 12,
    "serves": 4,
-   "desc": "Four chicken inasal with unli-rice, sharing"
+   "desc": "Four chicken inasal with unli-rice, sharing",
+   "food_type": "chicken",
+   "includes": "Good for 4. Four chicken inasal with unli-rice, sharing"
   },
   {
    "id": "ck-chao-fan-with-siomai",
@@ -610,7 +672,9 @@
    "fill_score": 3,
    "prep_minutes": 4,
    "serves": 1,
-   "desc": "Pork chao fan with 2 pcs siomai"
+   "desc": "Pork chao fan with 2 pcs siomai",
+   "food_type": "snack",
+   "includes": "Pork chao fan with 2 pcs siomai. May kasamang kanin."
   },
   {
    "id": "ck-beef-chao-fan",
@@ -629,7 +693,9 @@
    "fill_score": 3,
    "prep_minutes": 4,
    "serves": 1,
-   "desc": "Beef fried rice"
+   "desc": "Beef fried rice",
+   "food_type": "rice meal",
+   "includes": "Beef fried rice. May kasamang kanin."
   },
   {
    "id": "ck-sweet-and-sour-pork-lauriat",
@@ -649,7 +715,9 @@
    "fill_score": 5,
    "prep_minutes": 6,
    "serves": 1,
-   "desc": "Sweet & sour pork with chao fan, siomai and buchi"
+   "desc": "Sweet & sour pork with chao fan, siomai and buchi",
+   "food_type": "rice meal",
+   "includes": "Sweet & sour pork with chao fan, siomai and buchi. May kasamang kanin."
   },
   {
    "id": "ck-chinese-style-fried-chicken-with-rice",
@@ -668,7 +736,9 @@
    "fill_score": 3,
    "prep_minutes": 5,
    "serves": 1,
-   "desc": "Fried chicken Chinese-style with rice"
+   "desc": "Fried chicken Chinese-style with rice",
+   "food_type": "chicken",
+   "includes": "Fried chicken Chinese-style with rice. May kasamang kanin."
   },
   {
    "id": "ck-beef-wonton-mami",
@@ -688,7 +758,9 @@
    "fill_score": 3,
    "prep_minutes": 5,
    "serves": 1,
-   "desc": "Noodle soup with beef and wonton"
+   "desc": "Noodle soup with beef and wonton",
+   "food_type": "noodles",
+   "includes": "Noodle soup with beef and wonton."
   },
   {
    "id": "ck-siopao-asado",
@@ -706,7 +778,9 @@
    "fill_score": 2,
    "prep_minutes": 2,
    "serves": 1,
-   "desc": "Steamed bun with sweet pork filling"
+   "desc": "Steamed bun with sweet pork filling",
+   "food_type": "snack",
+   "includes": "Steamed bun with sweet pork filling."
   },
   {
    "id": "ck-siomai-4-pcs",
@@ -724,7 +798,9 @@
    "fill_score": 1,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Steamed pork dumplings"
+   "desc": "Steamed pork dumplings",
+   "food_type": "snack",
+   "includes": "Steamed pork dumplings."
   },
   {
    "id": "ck-halo-halo-supreme",
@@ -743,7 +819,9 @@
    "fill_score": 2,
    "prep_minutes": 3,
    "serves": 1,
-   "desc": "Chowking's halo-halo"
+   "desc": "Chowking's halo-halo",
+   "food_type": "dessert",
+   "includes": "Chowking's halo-halo."
   },
   {
    "id": "ck-iced-tea-regular",
@@ -761,7 +839,9 @@
    "fill_score": 0,
    "prep_minutes": 1,
    "serves": 1,
-   "desc": "Iced tea"
+   "desc": "Iced tea",
+   "food_type": "drink",
+   "includes": "Iced tea."
   },
   {
    "id": "ck-chao-fan-family-platter",
@@ -780,7 +860,9 @@
    "fill_score": 10,
    "prep_minutes": 8,
    "serves": 4,
-   "desc": "Chao fan platter good for 4"
+   "desc": "Chao fan platter good for 4",
+   "food_type": "snack",
+   "includes": "Good for 4. Chao fan platter good for 4"
   }
  ],
  "branches": [
@@ -935,6 +1017,56 @@
    "name": "Robinsons Townville",
    "lat": 15.48,
    "lng": 120.975
+  }
+ ],
+ "chains": [
+  {
+   "id": "jollibee",
+   "name": "Jollibee",
+   "color": "#D62300",
+   "avg_wait": {
+    "breakfast": 5,
+    "lunch": 9,
+    "merienda": 5,
+    "dinner": 8,
+    "late": 4
+   }
+  },
+  {
+   "id": "mcdonalds",
+   "name": "McDonald's",
+   "color": "#FFBC0D",
+   "avg_wait": {
+    "breakfast": 5,
+    "lunch": 8,
+    "merienda": 5,
+    "dinner": 8,
+    "late": 4
+   }
+  },
+  {
+   "id": "mang-inasal",
+   "name": "Mang Inasal",
+   "color": "#00843D",
+   "avg_wait": {
+    "breakfast": 10,
+    "lunch": 14,
+    "merienda": 9,
+    "dinner": 13,
+    "late": 8
+   }
+  },
+  {
+   "id": "chowking",
+   "name": "Chowking",
+   "color": "#E35205",
+   "avg_wait": {
+    "breakfast": 6,
+    "lunch": 10,
+    "merienda": 6,
+    "dinner": 9,
+    "late": 5
+   }
   }
  ]
 }

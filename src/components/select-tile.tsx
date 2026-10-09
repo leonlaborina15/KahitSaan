@@ -12,6 +12,7 @@ export function SelectTile({
   helper,
   badge,
   layout = "tile",
+  accent,
 }: {
   on: boolean;
   onClick: () => void;
@@ -20,12 +21,15 @@ export function SelectTile({
   helper?: string;
   badge?: React.ReactNode;
   layout?: "tile" | "row";
+  /** Left color accent (chain color). */
+  accent?: string;
 }) {
   return (
     <button
       type="button"
       aria-pressed={on}
       onClick={onClick}
+      style={accent ? { borderLeft: `6px solid ${accent}` } : undefined}
       className={cn(
         "relative flex min-h-11 rounded-2xl border text-left transition-colors duration-150",
         layout === "tile" ? "flex-col items-center justify-center gap-2 p-3 text-center" : "items-center gap-4 p-4",

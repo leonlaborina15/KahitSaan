@@ -16,7 +16,7 @@ export function weights(prefs: Prefs, f: ResolvedFilters): SubScores {
   if (f.urgency === "high") w.fast *= 2;
   if (f.urgency === "low") w.fast *= 0.5;
   if (f.max_distance_km !== null && f.max_distance_km <= 1) w.near *= 1.5;
-  if (f.hunger === "high") w.filling *= 1.5;
+  if (f.hunger === "high") w.filling *= 2;
   if (f.cravings.length) w.taste *= 1.5;
   const sum = Object.values(w).reduce((a, b) => a + b, 0);
   for (const k of Object.keys(w) as (keyof SubScores)[]) w[k] /= sum;

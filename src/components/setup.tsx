@@ -11,7 +11,7 @@ import { ConfettiBurst } from "@/components/confetti";
 import { SelectChip, SelectTile } from "@/components/select-tile";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
-import { CHAIN_COLORS, CHAIN_NAMES } from "@/lib/catalog";
+import { CHAIN_NAMES, catalog } from "@/lib/catalog";
 import { DEFAULT_PREFS } from "@/lib/store/db";
 import type { ChainId, Prefs, Priority } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -48,12 +48,27 @@ const PRIORITIES: { id: Priority; label: string; Icon: LucideIcon }[] = [
   { id: "fast", label: "Mabilis", Icon: Zap },
 ];
 
+const CHAIN_HEX = Object.fromEntries(catalog.chains.map((c) => [c.id, c.color])) as Record<ChainId, string>;
+
 const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
 /** 6-step setup. Pass `initial` to edit existing prefs (Settings). */
-export function Setup({ onDone, onBack, initial }: { onDone: (p: Prefs) => void; onBack?: () => void; initial?: Prefs }) {
+export function Setup({
+  onDone,
+  onBack,
+  initial,
+  startStep = 0,
+  single = false,
+}: {
+  onDone: (p: Prefs) => void;
+  onBack?: () => void;
+  initial?: Prefs;
+  /** Edit mode: open this step and save right after it. */
+  startStep?: number;
+  single?: boolean;
+}) {
   const reduce = useReducedMotion();
-  const [step, setStep] = useState(0);
+  const [step, setStep] = useState(startStep);
   const [dir, setDir] = useState(1);
   const [p, setP] = useState<Prefs>(initial ?? { ...DEFAULT_PREFS, priority: [] });
   const [noneAvoid, setNoneAvoid] = useState(!!initial && !initial.avoid_pork && !initial.dislikes.length);
@@ -207,7 +222,7 @@ export function Setup({ onDone, onBack, initial }: { onDone: (p: Prefs) => void;
       helper: "Optional. Bibigyan namin ng konting dagdag na puntos.",
       valid: true,
       body: (
-        <div className="grid grid-cols-2 gap-2">
+        <div className="flex flex-col gap-2">
           {(Object.keys(CHAIN_NAMES) as ChainId[]).map((c) => {
             const on = p.favorite_chains.includes(c);
             return (
@@ -215,9 +230,9 @@ export function Setup({ onDone, onBack, initial }: { onDone: (p: Prefs) => void;
                 key={c}
                 layout="row"
                 label={CHAIN_NAMES[c]}
+                accent={CHAIN_HEX[c]}
                 on={on}
                 onClick={() => update({ favorite_chains: toggle(p.favorite_chains, c) })}
-                badge={<span className={cn("absolute right-3 top-3 size-2.5 rounded-full ring-2 ring-white", CHAIN_COLORS[c])} aria-hidden />}
               />
             );
           })}
@@ -227,15 +242,15 @@ export function Setup({ onDone, onBack, initial }: { onDone: (p: Prefs) => void;
   ];
 
   const s = steps[step];
-  const last = step === steps.length - 1;
+  const last = single || step === steps.length - 1;
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex items-center gap-3 py-2">
+      <div className="sticky top-0 z-20 -mx-5 flex items-center gap-3 bg-background/95 px-5 py-2 backdrop-blur">
         <button
           type="button"
           aria-label="Balik"
-          onClick={() => (step > 0 ? go(step - 1) : onBack?.())}
+          onClick={() => (step > startStep && !single ? go(step - 1) : onBack?.())}
           disabled={step === 0 && !onBack}
           className="flex size-11 items-center justify-center rounded-full hover:bg-muted disabled:opacity-30"
         >
@@ -243,12 +258,14 @@ export function Setup({ onDone, onBack, initial }: { onDone: (p: Prefs) => void;
         </button>
         <div className="flex flex-1 gap-1.5" role="progressbar" aria-valuemin={1} aria-valuemax={6} aria-valuenow={step + 1} aria-label="Setup progress">
           {steps.map((_, i) => (
-            <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors", i <= step ? "bg-brand" : "bg-border")} />
+            <span key={i} className={cn("h-1.5 flex-1 rounded-full transition-colors", (single ? i === step : i <= step) ? "bg-brand" : "bg-border")} />
           ))}
         </div>
-        <button type="button" onClick={() => finish({ ...DEFAULT_PREFS, ...p })} className="min-h-11 px-2 text-sm font-medium text-muted-foreground underline">
-          Laktawan
-        </button>
+        {!single && (
+          <button type="button" onClick={() => finish({ ...DEFAULT_PREFS, ...p })} className="min-h-11 px-2 text-sm font-medium text-muted-foreground underline">
+            Laktawan
+          </button>
+        )}
       </div>
 
       <AnimatePresence mode="wait" initial={false} custom={dir}>
@@ -267,7 +284,7 @@ export function Setup({ onDone, onBack, initial }: { onDone: (p: Prefs) => void;
       </AnimatePresence>
 
       <StickyActions>
-        {step > 0 && (
+        {step > 0 && !single && (
           <Button variant="ghost" size="lg" className="h-12 px-5" onClick={() => go(step - 1)}>
             Balik
           </Button>

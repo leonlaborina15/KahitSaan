@@ -44,5 +44,5 @@ export async function recordPick(items: CatalogItem[]): Promise<TasteProfile> {
   return t;
 }
 
-/** "Burahin lahat": prefs, taste, saved place. */
-export const clearAll = () => Promise.all([del("prefs"), del("taste"), del("place")]);
+/** "Burahin lahat": everything this app stored. */
+export const clearAll = () => Promise.all(["prefs", "taste", "place", "history", "saved", "nope"].map((k) => del(k)));

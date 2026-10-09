@@ -19,6 +19,8 @@ export interface CatalogItem {
   prep_minutes: number;
   serves: number;
   desc: string;
+  food_type: string; // display group: chicken, burger, pasta, rice meal, noodles, sisig, snack, dessert, drink
+  includes: string; // what's in the box
 }
 
 export interface Branch {
@@ -41,6 +43,15 @@ export interface Landmark {
   lng: number;
 }
 
+export type MealPeriod = "breakfast" | "lunch" | "merienda" | "dinner" | "late";
+
+export interface ChainInfo {
+  id: ChainId;
+  name: string;
+  color: string;
+  avg_wait: Record<MealPeriod, number>; // minutes from order to food, by meal period
+}
+
 export interface Catalog {
   version: string;
   currency: "PHP";
@@ -48,6 +59,7 @@ export interface Catalog {
   items: CatalogItem[];
   branches: Branch[];
   landmarks: Landmark[];
+  chains: ChainInfo[];
 }
 
 export interface Prefs {
