@@ -69,10 +69,6 @@ export default function Home() {
     }
   }, [prefs, taste, place]);
 
-  const recent = useMemo(() => {
-    const seen = new Set<string>();
-    return history.filter((h) => (seen.has(h.item_ids.join("+")) ? false : (seen.add(h.item_ids.join("+")), true))).slice(0, 10);
-  }, [history]);
   const eatenThisWeek = history.filter((h) => Date.now() - Date.parse(h.at) < 7 * 86_400_000).length;
 
   const toRate = history.find((h) => h.rating === null && !h.rating_dismissed && Date.now() - Date.parse(h.at) > 30 * 60_000);
@@ -205,20 +201,6 @@ export default function Home() {
               {suggestions.map((r) => (
                 <MiniFoodCard key={r.key} items={r.items} sub={`${r.distance_km.toFixed(1)} km · ~${r.eta_min} min`} />
               ))}
-            </Carousel>
-          )}
-        </section>
-
-        <section className="flex flex-col gap-3">
-          <SectionTitle>Huling kinain mo</SectionTitle>
-          {recent.length === 0 ? (
-            <EmptyNote action={{ label: "Kahit Saan", onClick: () => router.push("/kahit-saan") }}>Wala pa. Hanap na tayo!</EmptyNote>
-          ) : (
-            <Carousel>
-              {recent.map((h) => {
-                const items = itemsFromIds(h.item_ids);
-                return items.length ? <MiniFoodCard key={h.id} items={items} sub={h.branch_name.replace(/\s*\(mock\)/gi, "")} /> : null;
-              })}
             </Carousel>
           )}
         </section>
