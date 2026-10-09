@@ -5,7 +5,9 @@ import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import { filtersFromRequest, useApp } from "@/components/app-data";
+import { useApp } from "@/components/app-data";
+import { runSearch } from "@/lib/engine";
+import { filtersFromRequest } from "@/lib/parse/filters";
 import { AppShell, buzz } from "@/components/app-shell";
 import { ConfettiBurst } from "@/components/confetti";
 import { BusogMeter, ChainLine, OpenLabel, SPEED, itemsLabel } from "@/components/food";
@@ -14,7 +16,7 @@ import { LocationRow } from "@/components/location";
 import { Button } from "@/components/ui/button";
 import { CategoryTile, OnDeviceBadge } from "@/components/visuals";
 import { catalog } from "@/lib/catalog";
-import { explore, mealPeriod, pickWeighted, type ItemResult } from "@/lib/rank/explore";
+import { mealPeriod, pickWeighted, type ItemResult } from "@/lib/rank/explore";
 import { addNope, loadNope, recentlyEaten } from "@/lib/store/history";
 import type { MealPeriod } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -63,7 +65,7 @@ export default function KahitSaan() {
       // Setup defaults only + time of day; must be open now.
       const { filters } = filtersFromRequest("", prefs);
       if (mealPeriod(new Date()) === "merienda") filters.hunger = "low";
-      const chosen = pickWeighted(explore({ catalog, filters, prefs, taste, here: place, excludeItems: exclude }));
+      const chosen = pickWeighted(runSearch(filters, { catalog, prefs, taste, here: place, excludeItems: exclude }).results);
       if (!chosen) return setState("none");
       chosen.items.forEach((i) => shown.add(i.id));
       saveShown(shown);

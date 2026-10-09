@@ -8,7 +8,7 @@ import { distanceKm, isAvailable, isOpen, mealPeriod, travelMinutes, type LatLng
 
 export { mealPeriod };
 import { templateReason } from "./reason";
-import { tasteScore } from "./score";
+import { tasteScore } from "./taste";
 
 export type SortKey = "best" | "cheap" | "near" | "fast" | "filling";
 export type Speed = "fast" | "ok" | "slow";
@@ -89,7 +89,7 @@ export function isPeak(now: Date): boolean {
 
 export const speedOf = (waitMin: number): Speed => (waitMin < 8 ? "fast" : waitMin <= 15 ? "ok" : "slow");
 
-const fmtTime = (hhmm: string) => {
+export const fmtTime = (hhmm: string) => {
   const [h, m] = hhmm.split(":").map(Number);
   const hr = h % 12 || 12;
   return `${hr}${m ? `:${String(m).padStart(2, "0")}` : ""}${h < 12 ? "am" : "pm"}`;

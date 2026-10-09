@@ -1,6 +1,6 @@
 // "Done when" checks for the Results + Kahit Saan logic.
 import { describe, expect, it } from "vitest";
-import { filtersFromRequest } from "@/components/app-data";
+import { filtersFromRequest } from "@/lib/parse/filters";
 import { catalog } from "@/lib/catalog";
 import { explore, isPeak, openStatus, pickWeighted, speedOf, type SortKey } from "@/lib/rank/explore";
 import { DEFAULT_PREFS, EMPTY_TASTE } from "@/lib/store/db";
