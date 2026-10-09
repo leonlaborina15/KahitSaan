@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { catalog } from "@/lib/catalog";
 import { parseRequest, search } from "@/lib/engine";
 import { isOpen } from "@/lib/rank/distance";
+import { voteTaste } from "@/lib/rank/taste";
 import { DEFAULT_PREFS, EMPTY_TASTE } from "@/lib/store/db";
 import type { Branch, Filters, Prefs, TasteProfile } from "@/lib/types";
 
@@ -133,5 +134,20 @@ describe("hours", () => {
     const b = { is_24h: false, hours: { open: "10:00", close: "02:00" } } as Branch;
     expect(isOpen(b, new Date(2026, 9, 9, 1, 0))).toBe(true);
     expect(isOpen(b, new Date(2026, 9, 9, 3, 0))).toBe(false);
+  });
+});
+
+describe("taste votes (SPEC §3.4)", () => {
+  it("👎 three times pushes a tag down; undoing restores it", async () => {
+    const sisig = catalog.items.filter((i) => i.tags.includes("sisig")).slice(0, 1);
+    const liked: TasteProfile = { ...EMPTY_TASTE, tag_counts: { sisig: 3 } };
+    let t = liked;
+    for (let n = 0; n < 3; n++) t = voteTaste(t, sisig, -1);
+    expect(t.tag_counts.sisig).toBe(0);
+    const rankOf = async (taste: TasteProfile) =>
+      (await run("150", { taste })).results.findIndex((r) => r.items.some((i) => i.tags.includes("sisig")));
+    expect(await rankOf(t)).toBeGreaterThan(await rankOf(liked));
+    for (let n = 0; n < 3; n++) t = voteTaste(t, sisig, 1);
+    expect(t.tag_counts).toEqual(expect.objectContaining({ sisig: 3 }));
   });
 });

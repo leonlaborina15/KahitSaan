@@ -12,3 +12,16 @@ export function tasteScore(items: CatalogItem[], prefs: Prefs, taste: TasteProfi
   const chainHabit = Math.max(-0.1, Math.min((taste.chain_counts[items[0].chain] ?? 0) / 10, 0.1));
   return Math.max(0, Math.min(1, 0.7 * Math.max(-1, Math.min(affinity / 6, 1)) + 0.3 * craving + favChain + chainHabit));
 }
+
+/**
+ * Add `delta` to the tag/chain counts of a meal: +1 on "Ito na!", -1 on a 👎, +1 to undo a 👎 (SPEC §3.4).
+ * Returns a new profile.
+ */
+export function voteTaste(t: TasteProfile, items: CatalogItem[], delta: 1 | -1): TasteProfile {
+  const next = structuredClone(t);
+  for (const tag of new Set(items.flatMap((i) => [...i.tags, i.protein ?? ""].filter(Boolean)))) {
+    next.tag_counts[tag] = (next.tag_counts[tag] ?? 0) + delta;
+  }
+  next.chain_counts[items[0].chain] = (next.chain_counts[items[0].chain] ?? 0) + delta;
+  return next;
+}

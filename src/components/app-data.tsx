@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { catalog } from "@/lib/catalog";
-import { DEFAULT_PREFS, EMPTY_TASTE, loadPlace, loadPrefs, loadTaste, recordPick, resetTaste, savePlace, savePrefs, type SavedPlace } from "@/lib/store/db";
+import { DEFAULT_PREFS, EMPTY_TASTE, loadPlace, loadPrefs, loadTaste, recordPick, recordVote, resetTaste, savePlace, savePrefs, type SavedPlace } from "@/lib/store/db";
 import {
   addHistory, loadHistory, loadSaved, toggleSavedChain, toggleSavedItem, updateHistory, type HistoryEntry, type Saved,
 } from "@/lib/store/history";
@@ -135,7 +135,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
       setTaste(EMPTY_TASTE);
     },
     history,
-    rate: async (id, rating, dismissed) => setHistory(await updateHistory(id, { rating, ...(dismissed ? { rating_dismissed: true } : {}) })),
+    rate: async (id, rating, dismissed) => {
+      // 👎 counts against the meal's tags; changing away from 👎 undoes it.
+      const prev = history.find((h) => h.id === id);
+      if (prev && (prev.rating === "down") !== (rating === "down")) {
+        const items = prev.item_ids.map((i) => catalog.items.find((x) => x.id === i)).filter((x): x is CatalogItem => !!x);
+        if (items.length) setTaste(await recordVote(items, rating === "down" ? -1 : 1));
+      }
+      setHistory(await updateHistory(id, { rating, ...(dismissed ? { rating_dismissed: true } : {}) }));
+    },
     saved,
     toggleItem: (key) =>
       void toggleSavedItem(key).then((s) => {

@@ -2,6 +2,7 @@
 import { del, get, set } from "idb-keyval";
 import type { CatalogItem, Prefs, TasteProfile } from "@/lib/types";
 import type { LatLng } from "@/lib/rank/distance";
+import { voteTaste } from "@/lib/rank/taste";
 
 export interface SavedPlace extends LatLng {
   label: string;
@@ -33,13 +34,16 @@ export const savePlace = (p: SavedPlace) => set("place", p);
 
 /** Taste memory v0 (SPEC §3.4 counts). Embedding vector update is added in Phase 3. */
 export async function recordPick(items: CatalogItem[]): Promise<TasteProfile> {
-  const t = structuredClone(await loadTaste());
+  const t = voteTaste(await loadTaste(), items, 1);
   t.pick_count += 1;
-  for (const tag of new Set(items.flatMap((i) => [...i.tags, i.protein ?? ""].filter(Boolean)))) {
-    t.tag_counts[tag] = (t.tag_counts[tag] ?? 0) + 1;
-  }
-  t.chain_counts[items[0].chain] = (t.chain_counts[items[0].chain] ?? 0) + 1;
   t.recent_picks = [...new Set([...items.map((i) => i.id), ...t.recent_picks])].slice(0, 10);
+  await set("taste", t);
+  return t;
+}
+
+/** 👎 in Kinain: -1 on the meal's tags/chain; +1 undoes it. */
+export async function recordVote(items: CatalogItem[], delta: 1 | -1): Promise<TasteProfile> {
+  const t = voteTaste(await loadTaste(), items, delta);
   await set("taste", t);
   return t;
 }
