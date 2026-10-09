@@ -85,7 +85,7 @@ Full field rules, tag list and the CSV source sheets: `docs/dataset.md`.
 }
 ```
 (Coordinates above are placeholders — real values come from OSM.)
-Items are chain-wide (same menu at every branch of a chain). `catalog.json` = `{ "version": "2026-10-09", "currency": "PHP", "items": [], "branches": [], "landmarks": [{ "id": "sm-cabanatuan", "name": "SM City Cabanatuan", "lat": 0, "lng": 0 }] }`.
+Items are chain-wide (same menu at every branch of a chain). `catalog.json` = `{ "version": "2026-10-09", "currency": "PHP", "chains": [{ "id": "jollibee", "name": "Jollibee", "color": "#D62300", "avg_wait": { "breakfast": 5, "lunch": 9, "merienda": 5, "dinner": 8, "late": 4 } }], "items": [], "branches": [], "landmarks": [{ "id": "sm-cabanatuan", "name": "SM City Cabanatuan", "lat": 0, "lng": 0 }] }`.
 
 ### 3.3 Preferences (IndexedDB key `prefs`)
 ```json
@@ -201,7 +201,7 @@ score = Σ w_k * sub_k
 - `hunger high` → `filling × 2` (min 0.05 first)
 - `cravings` not empty → `taste × 1.5`
 
-**Output:** every passing combo, one card per meal (same items) at its best-scoring branch, with a count of other branches. Sorted by score (or the user's sort: cheapest, nearest, fastest, most filling). The first card is the **best pick**. When nothing passes, the engine returns `notes` explaining why (budget too low, all closed, nothing within distance, group too big).
+**Output:** every passing combo, one card per meal (same items) at its best-scoring branch, with a count of other branches. Sorted by score (or the user's sort: cheapest, nearest, fastest, most filling). The first card is the **best pick**. When nothing passes, the engine returns `notes` explaining why (budget too low, all closed, nothing within distance, filters too strict).
 
 ## 6. Combo builder
 Candidates per open branch are built from that chain's items:

@@ -15,7 +15,7 @@ export interface CatalogItem {
   protein: string | null;
   contains_pork: boolean | "unknown"; // "unknown" counts as pork when avoiding pork
   spicy: boolean;
-  fill_score: number; // 1–5
+  fill_score: number; // 0–5 per person; bundles = group total
   prep_minutes: number;
   serves: number;
   desc: string;

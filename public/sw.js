@@ -39,7 +39,8 @@ async function page(request) {
     return (
       (await cache.match(request, { ignoreSearch: true })) ||
       (await cache.match(new URL(request.url).pathname.replace(/\/$/, "") || "/", { ignoreSearch: true })) ||
-      (await cache.match("/"))
+      (await cache.match("/")) ||
+      Response.error()
     );
   }
 }
