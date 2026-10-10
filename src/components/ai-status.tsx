@@ -1,12 +1,17 @@
 "use client";
 
 import { Sparkle } from "@phosphor-icons/react";
+import { useEffect, useSyncExternalStore } from "react";
+import { getLlmStatus, initLlm, subscribeLlm, type LlmStatus } from "@/lib/ai/llm";
 
-export type AiStatus = { state: "ready" } | { state: "loading"; pct: number } | { state: "basic" };
+export type AiStatus = LlmStatus;
 
-/** Until the local model lands (TASKS 3.6) the app runs in Basic mode. */
+const SERVER: AiStatus = { state: "basic", reason: "not-downloaded" };
+
+/** Live local-model status. Basic mode until a model is downloaded and loaded (SPEC §9). */
 export function useAiStatus(): AiStatus {
-  return { state: "basic" };
+  useEffect(() => void initLlm(), []);
+  return useSyncExternalStore(subscribeLlm, getLlmStatus, () => SERVER);
 }
 
 /** Ube = on-device AI, everywhere. */
@@ -24,7 +29,7 @@ export function AiStatusPill({ status }: { status: AiStatus }) {
   return (
     <span className={base} role="status">
       <span className={status.state === "ready" ? "size-2 rounded-full bg-success" : "size-2 rounded-full bg-ube/50"} aria-hidden />
-      {status.state === "ready" ? "AI handa" : "Basic mode"}
+      {status.state === "ready" ? "AI handa · offline" : "Basic mode"}
     </span>
   );
 }

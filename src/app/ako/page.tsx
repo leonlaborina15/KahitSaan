@@ -12,6 +12,7 @@ import { Setup } from "@/components/setup";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { MODELS, loadModel } from "@/lib/ai/llm";
 import { CHAIN_NAMES, catalog } from "@/lib/catalog";
 import { clearAll } from "@/lib/store/db";
 
@@ -114,11 +115,31 @@ export default function Ako() {
             <span className="text-muted-foreground">Status</span>
             <AiStatusPill status={ai} />
           </div>
-          <p className="px-2 text-sm">Model: Qwen2.5 1.5B · ~1 GB, isang download lang</p>
-          <p className="px-2 text-sm text-muted-foreground">Basic mode muna sa ngayon. Gumagana pa rin ang paghahanap, kahit offline.</p>
-          <Button variant="outline" className="h-11" disabled>
-            <DownloadSimple size={20} aria-hidden /> I-download ulit
-          </Button>
+          {ai.state === "ready" ? (
+            <p className="px-2 text-sm">
+              Model: {MODELS[ai.model].label} · tumatakbo sa phone mo, kahit offline.
+            </p>
+          ) : ai.state === "loading" ? (
+            <p className="px-2 text-sm text-muted-foreground">Dina-download… pwede ka pa ring maghanap habang hinihintay.</p>
+          ) : ai.reason === "no-webgpu" ? (
+            <p className="px-2 text-sm text-muted-foreground">Walang WebGPU ang browser na &apos;to, kaya Simple mode. Gumagana pa rin ang paghahanap.</p>
+          ) : (
+            <>
+              <p className="px-2 text-sm">I-download ang AI brain (isang beses lang). Wi-Fi ang mas mainam.</p>
+              {ai.reason === "error" && <p className="px-2 text-sm text-destructive">Hindi na-load ang AI. Subukan ulit o gamitin ang small.</p>}
+              <Button className="h-11" onClick={() => void loadModel("big")}>
+                <DownloadSimple size={20} aria-hidden /> Download ({MODELS.big.size})
+              </Button>
+              <Button variant="outline" className="h-11" onClick={() => void loadModel("small")}>
+                Small model ({MODELS.small.size})
+              </Button>
+            </>
+          )}
+          {ai.state === "ready" && ai.model === "big" && (
+            <Button variant="ghost" className="h-11" onClick={() => void loadModel("small")}>
+              Lipat sa small model ({MODELS.small.size})
+            </Button>
+          )}
         </Section>
 
         <Section Icon={ShieldCheck} title="Privacy">

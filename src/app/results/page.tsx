@@ -15,7 +15,8 @@ import { EmptyResults, ErrorState, ResultsSkeleton } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { catalog } from "@/lib/catalog";
-import { runSearch, type SearchOutput } from "@/lib/engine";
+import { llmParse, llmReasons } from "@/lib/ai/llm";
+import { parseRequest, runSearch, type SearchOutput } from "@/lib/engine";
 import { filtersFromRequest } from "@/lib/parse/filters";
 import { parseRules } from "@/lib/parse/rules";
 import { pickWeighted, type ExploreFilters, type ItemResult } from "@/lib/rank/explore";
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 const MAX_SHOWN = 11; // best pick + up to 10 more
 const SHUFFLE_MS = 780;
 const SETTLE_MS = 650;
+const MATCH_WORDS = { cheap: "mura", fast: "mabilis", near: "malapit", filling: "busog", taste: "swak sa panlasa" };
 
 /** Score-weighted shuffle of the current results (Kahit Saan's pickWeighted on a shrinking pool). */
 function weightedOrder(results: ItemResult[]): string[] {
@@ -91,6 +93,22 @@ function ResultsInner() {
     if (!reduce) setSettling(true);
   }
 
+  // Local LLM (when ready): re-parse the request and upgrade the filters; rule parse stays if it fails/times out.
+  useEffect(() => {
+    if (!prefs || ai.state !== "ready" || !q.trim()) return;
+    let live = true;
+    void parseRequest(q, prefs, { llm: llmParse }).then((p) => {
+      if (!live || p.parser !== "llm") return;
+      setFilters((prev) => {
+        const m = mergeQuery(prev, p.filters, q);
+        return { ...m, avoid: [...new Set([...m.avoid, ...p.filters.avoid])] };
+      });
+    });
+    return () => {
+      live = false;
+    };
+  }, [q, prefs, ai.state]);
+
   // Short "computing" beat so the skeleton → staggered reveal reads on a new search.
   useEffect(() => {
     if (!settling) return;
@@ -145,6 +163,42 @@ function ResultsInner() {
     const byKey = new Map(results.map((r) => [r.key, r]));
     return order.map((k) => byKey.get(k)).filter((r): r is ItemResult => !!r);
   }, [results, order]);
+
+  // LLM reason lines for the top 3 (one batched call); template reason stays until/unless it answers.
+  const [aiReasons, setAiReasons] = useState<Record<string, string>>({});
+  const top = shown && shown !== "error" ? shown.slice(0, 3) : [];
+  const topKey = top.map((r) => `${q}|${r.key}@${r.branch.id}`).join("|");
+  useEffect(() => {
+    if (ai.state !== "ready" || !top.length) return;
+    let live = true;
+    const facts = top.map((r) => ({
+      names: r.items.map((i) => i.name).join(" + "),
+      total: r.total,
+      distance_km: r.distance_km,
+      eta_min: r.eta_min,
+      matches: (Object.keys(r.sub) as (keyof typeof r.sub)[])
+        .sort((a, b) => r.sub[b] - r.sub[a])
+        .slice(0, 2)
+        .map((k) => MATCH_WORDS[k])
+        .join(", "),
+    }));
+    void llmReasons(q, facts).then((rs) => {
+      if (!live || !rs) return;
+      setAiReasons((m) => {
+        const n = { ...m };
+        top.forEach((r, i) => rs[i] && (n[`${q}|${r.key}@${r.branch.id}`] = rs[i]!));
+        return n;
+      });
+    });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topKey, ai.state]);
+  const withReason = (r: ItemResult) => {
+    const s = aiReasons[`${q}|${r.key}@${r.branch.id}`];
+    return s ? { ...r, reason: s } : r;
+  };
 
   /** 👎 on a suggestion: slide it away, remember the item for 7 days (taste memory). */
   const nope = (r: ItemResult) => {
@@ -343,7 +397,7 @@ function ResultsInner() {
                           className="touch-pan-y"
                         >
                           {i === 1 && <h2 className="mb-3 text-lg">Iba pang option</h2>}
-                          {i === 0 ? <HeroCard r={r} onNope={() => nope(r)} /> : <CompactCard r={r} onNope={() => nope(r)} />}
+                          {i === 0 ? <HeroCard r={withReason(r)} onNope={() => nope(r)} /> : <CompactCard r={withReason(r)} onNope={() => nope(r)} />}
                         </motion.li>
                       ))}
                     </AnimatePresence>
