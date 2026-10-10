@@ -1,6 +1,6 @@
 "use client";
 
-import { ThumbsDown, ThumbsUp } from "@phosphor-icons/react";
+import { ThumbsDownIcon as ThumbsDown, ThumbsUpIcon as ThumbsUp } from "@/components/icons";
 import { useApp } from "@/components/app-data";
 import type { HistoryEntry } from "@/lib/store/history";
 import { cn } from "@/lib/utils";
@@ -14,15 +14,15 @@ export function RatingButtons({ h }: { h: HistoryEntry }) {
       aria-pressed={h.rating === val}
       onClick={() => void rate(h.id, h.rating === val ? null : val)}
       className={cn(
-        "flex size-11 items-center justify-center rounded-full border",
-        h.rating === val ? "border-primary bg-primary text-primary-foreground" : "bg-card text-muted-foreground",
+        "flex size-11 items-center justify-center rounded-[10px]",
+        h.rating === val ? "text-brand" : "text-muted-foreground hover:text-foreground",
       )}
     >
-      <Icon size={20} weight={h.rating === val ? "fill" : "regular"} />
+      <Icon size={20} fill={h.rating === val ? "currentColor" : "none"} fillOpacity={0.2} />
     </button>
   );
   return (
-    <div className="flex gap-2">
+    <div className="flex">
       {btn("up", ThumbsUp, "Nabusog ako")}
       {btn("down", ThumbsDown, "Hindi ako nabusog")}
     </div>

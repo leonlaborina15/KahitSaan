@@ -23,7 +23,7 @@ export default function Saved() {
   return (
     <AppShell>
       <div className="flex flex-col gap-4 py-2">
-        <h1 className="text-[32px]">Saved</h1>
+        <h1 className="text-title">Saved</h1>
         {!ready ? (
           <Skeleton className="h-40 rounded-[24px]" />
         ) : (
@@ -46,13 +46,13 @@ export default function Saved() {
                     <article key={key} className="flex flex-col gap-3 rounded-[24px] border bg-card p-4">
                       <div className="flex items-start gap-2">
                         <button type="button" onClick={() => openDetail(items)} className="flex min-w-0 flex-1 flex-col gap-1 text-left">
-                          <span className="flex items-center gap-2 text-sm">
+                          <span className="flex items-center gap-2 text-body">
                             <span className={cn("size-2.5 rounded-full", CHAIN_COLORS[items[0].chain])} aria-hidden />
                             {CHAIN_NAMES[items[0].chain]}
                           </span>
                           <span className="font-semibold">{itemsLabel(items)}</span>
                           <span className="flex items-center gap-3">
-                            <span className="text-lg font-bold tabular-nums">₱{total}</span>
+                            <span className="text-title tabular-nums">₱{total}</span>
                             <BusogMeter value={Math.min(5, items.reduce((s, i) => s + i.fill_score, 0))} />
                           </span>
                         </button>
@@ -77,7 +77,7 @@ export default function Saved() {
                   <article key={c} className="flex items-center gap-3 rounded-[24px] border bg-card p-4" style={{ borderLeft: `4px solid ${catalog.chains.find((x) => x.id === c)?.color}` }}>
                     <div className="flex min-w-0 flex-1 flex-col">
                       <span className="font-semibold">{CHAIN_NAMES[c]}</span>
-                      <span className="text-sm text-muted-foreground">{b ? `Pinakamalapit: ${b.distance_km.toFixed(1)} km` : "Walang bukas na malapit"}</span>
+                      <span className="text-body text-muted-foreground">{b ? `Pinakamalapit: ${b.distance_km.toFixed(1)} km` : "Walang bukas na malapit"}</span>
                     </div>
                     {on && (
                       <Button variant="outline" className="h-11" onClick={() => router.push(`/results?q=${encodeURIComponent(CHAIN_NAMES[c])}`)}>
@@ -90,7 +90,7 @@ export default function Saved() {
                   </article>
                 );
               })}
-              {saved.chains.length === 0 && <p className="text-sm text-muted-foreground">I-tap ang ♥ para i-save ang paborito mong kainan.</p>}
+              {saved.chains.length === 0 && <p className="text-body text-muted-foreground">I-tap ang ♥ para i-save ang paborito mong kainan.</p>}
             </TabsContent>
           </Tabs>
         )}

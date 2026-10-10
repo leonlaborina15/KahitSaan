@@ -1,8 +1,9 @@
 "use client";
 
-import { Minus, PencilSimple, Plus, Sparkle, X } from "@phosphor-icons/react";
+import { Minus, Plus } from "@phosphor-icons/react";
+import { SlidersIcon, SparklesIcon, XIcon } from "@/components/icons";
 import { useState } from "react";
-import { SelectChip } from "@/components/select-tile";
+import { SelectChip, chipClass } from "@/components/select-tile";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Slider } from "@/components/ui/slider";
@@ -41,11 +42,11 @@ type BasicKey = "budget" | "people" | "hunger" | "urgency";
 
 function Stepper({ value, dec, inc, what }: { value: string; dec: () => void; inc: () => void; what: string }) {
   return (
-    <div className="flex items-center justify-between rounded-[16px] border bg-card p-1.5">
+    <div className="flex items-center justify-between rounded-[10px] border bg-card p-1">
       <Button variant="ghost" size="icon" className="size-11" aria-label={`Bawasan ${what}`} onClick={dec}>
         <Minus size={20} />
       </Button>
-      <span className="font-display text-2xl font-bold tabular-nums">{value}</span>
+      <span className="text-title tabular-nums">{value}</span>
       <Button variant="ghost" size="icon" className="size-11" aria-label={`Dagdagan ${what}`} onClick={inc}>
         <Plus size={20} />
       </Button>
@@ -56,7 +57,7 @@ function Stepper({ value, dec, inc, what }: { value: string; dec: () => void; in
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <fieldset className="flex flex-col gap-2">
-      <legend className="mb-2 text-sm font-semibold">{title}</legend>
+      <legend className="mb-2 text-section">{title}</legend>
       <div className="flex flex-wrap gap-2">{children}</div>
     </fieldset>
   );
@@ -68,7 +69,7 @@ function BudgetEditor({ f, set }: { f: ExploreFilters; set: Set_ }) {
   const apply = (v: number) => set({ budget: perPerson ? v * f.people : v });
   return (
     <div className="flex w-full flex-col gap-4">
-      <div className="text-center font-display text-4xl font-extrabold tabular-nums">₱{shown}</div>
+      <div className="text-center text-display tabular-nums">₱{shown}</div>
       <Slider min={50} max={500} step={10} value={[Math.min(500, Math.max(50, shown))]} onValueChange={(v) => apply(Array.isArray(v) ? v[0] : v)} aria-label="Budget" />
       {f.people > 1 && (
         <div className="flex gap-2">
@@ -111,35 +112,34 @@ export function UnderstoodChips({ f, set, fromSetup }: { f: ExploreFilters; set:
   ];
   return (
     <div className="flex flex-col gap-2">
-      <p className="flex items-center gap-1 text-xs font-bold uppercase tracking-wide text-ube">
-        <Sparkle size={14} weight="fill" aria-hidden /> Na-intindi ko
+      <p className="flex items-center gap-1 text-micro">
+        <SparklesIcon size={12} aria-hidden /> Na-intindi ko
       </p>
-      <div className="flex flex-wrap gap-2">
+      <div className="no-scrollbar edge-fade -mx-4 flex gap-2 overflow-x-auto px-4 py-1">
         {chips.map((c) => (
           <button
             key={c.key}
             type="button"
             onClick={() => setEditing(c.key)}
             aria-label={`Palitan: ${c.label}`}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-ube/25 bg-ube-soft px-4 text-sm font-semibold text-foreground"
+            className={chipClass(false) + " text-foreground"}
           >
             {c.label}
-            {fromSetup.has(c.key) && <span className="rounded-full bg-card px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">setup</span>}
-            <PencilSimple size={14} className="text-ube" aria-hidden />
+            {fromSetup.has(c.key) && <span className="text-micro">· setup</span>}
           </button>
         ))}
       </div>
       <Sheet open={editing !== null} onOpenChange={(o) => !o && setEditing(null)}>
-        <SheetContent side="bottom" className="mx-auto max-w-[440px] rounded-t-[28px] px-5 pb-8">
+        <SheetContent side="bottom" className="mx-auto max-w-[440px] rounded-t-[20px] px-4 pb-8">
           {editing && (
             <>
               <SheetHeader className="px-0">
-                <SheetTitle className="font-display text-xl">{BASIC_TITLES[editing]}</SheetTitle>
+                <SheetTitle className="text-title">{BASIC_TITLES[editing]}</SheetTitle>
               </SheetHeader>
               <div className="flex flex-wrap gap-2">
                 <BasicEditor k={editing} f={f} set={set} />
               </div>
-              <Button size="lg" className="mt-4 h-12 w-full text-base" onClick={() => setEditing(null)}>Tapos na</Button>
+              <Button size="lg" className="mt-4 h-12 w-full rounded-[10px] text-body font-semibold" onClick={() => setEditing(null)}>Tapos na</Button>
             </>
           )}
         </SheetContent>
@@ -148,14 +148,14 @@ export function UnderstoodChips({ f, set, fromSetup }: { f: ExploreFilters; set:
   );
 }
 
-/** "Unahin": ordered multi-select. Tap order = ranking weight order. */
-export function UnahinRow({ f, set, isSetup }: { f: ExploreFilters; set: Set_; isSetup: boolean }) {
+/** "Unahin": ordered multi-select. Tap order = ranking weight order. Lives in the Filters sheet. */
+export function UnahinRow({ f, set, isSetup }: { f: ExploreFilters; set: Set_; isSetup?: boolean }) {
   return (
-    <div className="flex flex-col gap-2">
-      <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-        Unahin {isSetup && <span className="ml-1 rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium normal-case">setup</span>}
-      </p>
-      <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 pb-1">
+    <fieldset className="flex flex-col gap-2">
+      <legend className="mb-2 text-section">
+        Unahin {isSetup && <span className="text-micro">· setup</span>}
+      </legend>
+      <div className="flex flex-wrap gap-2">
         {UNAHIN.map((u) => {
           const rank = f.unahin.indexOf(u.id);
           return (
@@ -165,7 +165,7 @@ export function UnahinRow({ f, set, isSetup }: { f: ExploreFilters; set: Set_; i
           );
         })}
       </div>
-    </div>
+    </fieldset>
   );
 }
 
@@ -187,9 +187,15 @@ export function applyQuick(f: ExploreFilters, ids: string[]): ExploreFilters {
   }, f);
 }
 
-export function QuickFilters({ f, set }: { f: ExploreFilters; set: Set_ }) {
+export function QuickFilters({ f, set, onFilters, count = 0 }: { f: ExploreFilters; set: Set_; onFilters?: () => void; count?: number }) {
   return (
-    <div className="no-scrollbar -mx-5 flex gap-2 overflow-x-auto px-5 pb-1" role="group" aria-label="Quick filters">
+    <div className="no-scrollbar edge-fade -mx-4 flex gap-2 overflow-x-auto px-4 py-1" role="group" aria-label="Quick filters">
+      {onFilters && (
+        <button type="button" onClick={onFilters} className={chipClass(count > 0)}>
+          <SlidersIcon size={16} aria-hidden /> Filters
+          {count > 0 && <span className="tabular-nums">· {count}</span>}
+        </button>
+      )}
       {QUICK.map((q) => (
         <SelectChip key={q.id} on={q.on(f)} onClick={() => set(q.flip(f))}>{q.label}</SelectChip>
       ))}
@@ -224,14 +230,14 @@ export function ActiveFilterBar({ f, set, fromSetup }: { f: ExploreFilters; set:
           type="button"
           onClick={() => set(a.clear)}
           aria-label={`Alisin: ${a.label}`}
-          className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-foreground px-3 text-xs font-semibold text-background"
+          className="inline-flex min-h-9 items-center gap-1.5 rounded-full bg-foreground px-3 text-meta font-semibold text-background"
         >
           {a.label}
-          {a.tag && <span className="rounded-full bg-background/20 px-1.5 text-[10px]">{a.tag}</span>}
-          <X size={12} weight="bold" aria-hidden />
+          {a.tag && <span className="rounded-full bg-background/20 px-1.5 text-micro">{a.tag}</span>}
+          <XIcon size={12} aria-hidden />
         </button>
       ))}
-      <button type="button" onClick={() => set(CLEARED)} className="min-h-9 px-2 text-xs font-semibold text-primary underline">
+      <button type="button" onClick={() => set(CLEARED)} className="min-h-9 px-2 text-meta font-semibold text-primary underline">
         I-clear lahat
       </button>
     </div>
@@ -262,14 +268,16 @@ export function FiltersSheet({
   }
   const set: Set_ = (p) => setDraft((d) => ({ ...d, ...p }));
   const count = countFor(draft);
+  const isSetup = draft.unahin.join() === defaults.unahin.join();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="mx-auto flex max-h-[90dvh] max-w-[440px] flex-col rounded-t-[28px] px-0 pb-0">
-        <SheetHeader className="px-5">
-          <SheetTitle className="font-display text-xl">Filters</SheetTitle>
+      <SheetContent side="bottom" className="mx-auto flex max-h-[90dvh] max-w-[440px] flex-col rounded-t-[20px] px-0 pb-0">
+        <SheetHeader className="px-4">
+          <SheetTitle className="text-title">Filters</SheetTitle>
         </SheetHeader>
-        <div className="flex flex-col gap-6 overflow-y-auto px-5 pb-6">
+        <div className="flex flex-col gap-8 overflow-y-auto px-4 pb-8">
+          <UnahinRow f={draft} set={set} isSetup={isSetup} />
           <Group title="Budget"><BudgetEditor f={draft} set={set} /></Group>
           <Group title="Ilan kayo"><BasicEditor k="people" f={draft} set={set} /></Group>
           <Group title="Gutom level"><BasicEditor k="hunger" f={draft} set={set} /></Group>
@@ -299,13 +307,13 @@ export function FiltersSheet({
             ))}
           </Group>
         </div>
-        <div className="flex gap-2 border-t bg-background px-5 py-4">
-          <Button variant="ghost" size="lg" className="h-12" onClick={() => setDraft(defaults)}>
+        <div className="flex gap-2 border-t bg-card px-4 py-4">
+          <Button variant="ghost" size="lg" className="h-12 rounded-[10px]" onClick={() => setDraft(defaults)}>
             I-reset
           </Button>
           <Button
             size="lg"
-            className="h-12 flex-1 text-base"
+            className="h-12 flex-1 rounded-[10px] text-body font-semibold"
             onClick={() => {
               onApply(draft);
               onOpenChange(false);

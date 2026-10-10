@@ -1,13 +1,14 @@
 "use client";
 
-import { CaretLeft, List, MagnifyingGlass, MapTrifold, SlidersHorizontal } from "@phosphor-icons/react";
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { AiStatusPill, useAiStatus } from "@/components/ai-status";
+import { ChevronLeftIcon, SearchIcon } from "@/components/icons";
+import { OnDeviceBadge } from "@/components/visuals";
 import { useApp } from "@/components/app-data";
 import { AppShell } from "@/components/app-shell";
-import { ActiveFilterBar, CLEARED, FiltersSheet, QuickFilters, UnahinRow, UnderstoodChips, activeFilters, applyQuick } from "@/components/filter-chips";
+import { CLEARED, FiltersSheet, QuickFilters, UnderstoodChips, activeFilters, applyQuick } from "@/components/filter-chips";
 import { CompactCard, HeroCard } from "@/components/food";
 import { LocationRow } from "@/components/location";
 import { EmptyResults, ErrorState, ResultsSkeleton } from "@/components/states";
@@ -54,6 +55,14 @@ function ResultsInner() {
   const [draftQ, setDraftQ] = useState(q);
   const [retry, setRetry] = useState(0);
   const [compact, setCompact] = useState(false);
+  const [thinking, setThinking] = useState(true);
+
+  // The ranker is instant; hold the skeleton briefly so a new search reads as a search.
+  useEffect(() => {
+    setThinking(true);
+    const t = setTimeout(() => setThinking(false), 600);
+    return () => clearTimeout(t);
+  }, [q]);
 
   if (initial && forQuery !== q) {
     setForQuery(q);
@@ -96,14 +105,13 @@ function ResultsInner() {
     return null;
   }
 
-  const unahinIsSetup = !!filters && !!prefs && filters.unahin.join() === prefs.priority.join();
   const activeCount = filters && initial ? activeFilters(filters, initial.fromSetup).length : 0;
 
   return (
     <AppShell header={false}>
-      <div className={cn("sticky top-0 z-20 -mx-5 flex items-center gap-2 bg-background/95 px-5 backdrop-blur-xl transition-[padding] duration-200", compact ? "py-2" : "py-4")}>
-        <Button variant="ghost" size="icon" className="size-11 shrink-0" aria-label="Balik sa Home" onClick={() => router.push("/")}>
-          <CaretLeft size={22} />
+      <div className={cn("sticky top-0 z-20 -mx-4 flex items-center gap-2 bg-background/95 px-4 backdrop-blur-xl transition-[padding] duration-200", compact ? "py-2" : "py-4")}>
+        <Button variant="ghost" size="icon" className="size-11 shrink-0 rounded-[10px]" aria-label="Balik sa Home" onClick={() => router.push("/")}>
+          <ChevronLeftIcon size={24} />
         </Button>
         {editingQuery ? (
           <form
@@ -120,59 +128,42 @@ function ResultsInner() {
               autoFocus
               value={draftQ}
               onChange={(e) => setDraftQ(e.target.value)}
-              className="min-h-11 flex-1 rounded-full border bg-card px-4 text-sm"
+              className="min-h-11 flex-1 rounded-[10px] border bg-card px-4 text-body"
               placeholder="Hal. ₱150 lang, gutom na gutom"
             />
-            <Button type="submit" size="icon" className="size-11 rounded-full" aria-label="Hanapin ulit">
-              <MagnifyingGlass size={20} />
+            <Button type="submit" size="icon" className="size-11 rounded-[10px]" aria-label="Hanapin ulit">
+              <SearchIcon size={20} />
             </Button>
           </form>
         ) : (
           <button
             type="button"
             onClick={() => setEditingQuery(true)}
-            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-full border bg-card px-4 text-left text-sm"
+            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-[10px] border bg-card px-4 text-left text-body"
             aria-label="I-edit ang hanap"
           >
-            <MagnifyingGlass size={18} className="shrink-0 text-muted-foreground" aria-hidden />
+            <SearchIcon size={18} className="shrink-0 text-muted-foreground" aria-hidden />
             <span className="truncate">{q || "Kahit ano (defaults)"}</span>
           </button>
         )}
         {!compact && !editingQuery && <AiStatusPill status={ai} />}
       </div>
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2">
         <LocationRow />
         {!filters || !initial || !place ? (
           place || !ready ? <ResultsSkeleton /> : null
         ) : (
           <>
             <UnderstoodChips f={filters} set={set} fromSetup={initial.fromSetup} />
-            <UnahinRow f={filters} set={set} isSetup={unahinIsSetup} />
-            <QuickFilters f={filters} set={set} />
+            <QuickFilters f={filters} set={set} onFilters={() => setFiltersOpen(true)} count={activeCount} />
+            <p className="text-meta" aria-live="polite">
+              {thinking || results === "error" || !results ? "" : `${results.length} pasok`}
+            </p>
 
-            <div className="flex items-center gap-2">
-              <Button variant="outline" className="h-11 gap-2 px-3" onClick={() => setFiltersOpen(true)}>
-                <SlidersHorizontal size={20} aria-hidden /> Filters
-                {activeCount > 0 && (
-                  <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">{activeCount}</span>
-                )}
-              </Button>
-              <p className="flex-1 text-sm font-semibold" aria-live="polite">
-                {results === "error" || !results ? "" : `${results.length} pasok`}
-              </p>
-              <div className="flex rounded-[16px] border bg-card p-0.5" role="group" aria-label="View">
-                <button type="button" aria-pressed className="flex size-10 items-center justify-center rounded-[14px] bg-primary text-primary-foreground" aria-label="List view">
-                  <List size={20} />
-                </button>
-                <button type="button" disabled className="flex size-10 items-center justify-center rounded-[14px] text-muted-foreground opacity-50" aria-label="Map view, soon" title="Soon">
-                  <MapTrifold size={20} />
-                </button>
-              </div>
-            </div>
-            <ActiveFilterBar f={filters} set={set} fromSetup={initial.fromSetup} />
-
-            {results === "error" ? (
+            {thinking ? (
+              <ResultsSkeleton />
+            ) : results === "error" ? (
               <ErrorState onRetry={() => setRetry((n) => n + 1)} />
             ) : results && results.length === 0 ? (
               <EmptyResults
@@ -185,7 +176,7 @@ function ResultsInner() {
             ) : (
               results && (
                 <LayoutGroup>
-                  <motion.ul layout={!reduce} className="flex flex-col gap-3">
+                  <motion.ul layout={!reduce} className="flex flex-col gap-4">
                     <AnimatePresence initial={false} mode="popLayout">
                       {results.slice(0, MAX_SHOWN).map((r, i) => (
                         <motion.li
@@ -195,15 +186,16 @@ function ResultsInner() {
                           animate={{ opacity: 1, y: 0, transition: { type: "spring", stiffness: 400, damping: 34, delay: Math.min(i, 6) * 0.03 } }}
                           exit={reduce ? undefined : { opacity: 0, scale: 0.96 }}
                         >
-                          {i === 1 && <h2 className="mb-3 text-lg">Iba pang option</h2>}
+                          {i === 1 && <h2 className="mb-4 pt-4 text-section">Iba pang option</h2>}
                           {i === 0 ? <HeroCard r={r} /> : <CompactCard r={r} />}
                         </motion.li>
                       ))}
                     </AnimatePresence>
                   </motion.ul>
                   {results.length > MAX_SHOWN && (
-                    <p className="text-center text-xs text-muted-foreground">Ipinapakita ang top {MAX_SHOWN} sa {results.length}.</p>
+                    <p className="pt-4 text-center text-meta">Ipinapakita ang top {MAX_SHOWN} sa {results.length}.</p>
                   )}
+                  <p className="pt-8 text-center"><OnDeviceBadge /></p>
                 </LayoutGroup>
               )
             )}

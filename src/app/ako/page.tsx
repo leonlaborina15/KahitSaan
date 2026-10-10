@@ -22,7 +22,7 @@ const AVOID_LABELS: Record<string, string> = { beef: "Baka", seafood: "Seafood",
 function Section({ Icon, title, children, ube = false }: { Icon: typeof Info; title: string; children: React.ReactNode; ube?: boolean }) {
   return (
     <section className="flex flex-col gap-2 rounded-[24px] border bg-card p-4">
-      <h2 className="mb-1 flex items-center gap-2 text-base">
+      <h2 className="mb-1 flex items-center gap-2 text-body">
         <span className={ube ? "flex size-9 items-center justify-center rounded-[14px] bg-ube-soft text-ube" : "flex size-9 items-center justify-center rounded-[14px] bg-primary-soft text-primary"} aria-hidden>
           <Icon size={22} weight="duotone" />
         </span>
@@ -37,8 +37,8 @@ function Section({ Icon, title, children, ube = false }: { Icon: typeof Info; ti
 function EditRow({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
   return (
     <button type="button" onClick={onClick} className="flex min-h-12 items-center gap-3 rounded-[16px] px-2 text-left hover:bg-muted">
-      <span className="w-24 shrink-0 text-sm text-muted-foreground">{label}</span>
-      <span className="flex-1 truncate text-sm font-semibold">{value}</span>
+      <span className="w-24 shrink-0 text-body text-muted-foreground">{label}</span>
+      <span className="flex-1 truncate text-body font-semibold">{value}</span>
       <CaretRight size={18} className="text-muted-foreground" aria-hidden />
     </button>
   );
@@ -74,15 +74,15 @@ export default function Ako() {
       <div className="flex flex-col gap-4 py-2">
         <div className="flex items-center gap-3">
           <Kanin mood="happy" size={56} />
-          <h1 className="text-[32px]">Ako</h1>
+          <h1 className="text-title">Ako</h1>
         </div>
 
         <Section Icon={SlidersHorizontal} title="Defaults">
-          <p className="px-2 text-xs text-muted-foreground">Default lang ito. Pag may sinabi ka sa search, yun ang masusunod.</p>
+          <p className="px-2 text-meta text-muted-foreground">Default lang ito. Pag may sinabi ka sa search, yun ang masusunod.</p>
           {!ready ? (
             <Skeleton className="h-48 w-full" />
           ) : !prefs ? (
-            <p className="text-sm text-muted-foreground">Wala pang setup. Pumunta sa Home para magsimula.</p>
+            <p className="text-body text-muted-foreground">Wala pang setup. Pumunta sa Home para magsimula.</p>
           ) : (
             <div className="flex flex-col">
               <EditRow label="Budget" value={`₱${prefs.usual_budget}`} onClick={() => setEditStep(0)} />
@@ -95,7 +95,7 @@ export default function Ako() {
               <EditRow label="Gutom level" value={APPETITE_LABELS[prefs.appetite]} onClick={() => setEditStep(3)} />
               <EditRow label="Priorities" value={prefs.priority.map((p) => PRIORITY_LABELS[p]).join(" › ")} onClick={() => setEditStep(4)} />
               <EditRow label="Kainan" value={prefs.favorite_chains.map((c) => CHAIN_NAMES[c]).join(", ") || "Kahit saan"} onClick={() => setEditStep(5)} />
-              <div className="mt-2 flex items-center justify-between gap-2 px-2 text-sm">
+              <div className="mt-2 flex items-center justify-between gap-2 px-2 text-body">
                 <span className="text-muted-foreground">Taste memory: {taste?.pick_count ?? 0} picks</span>
                 <Button variant="ghost" className="h-11" onClick={() => void resetTaste().then(() => toast("Na-reset ang taste memory."))}>
                   I-reset
@@ -110,27 +110,27 @@ export default function Ako() {
         </Section>
 
         <Section Icon={Cpu} title="AI sa phone mo" ube>
-          <div className="flex items-center justify-between px-2 text-sm">
+          <div className="flex items-center justify-between px-2 text-body">
             <span className="text-muted-foreground">Status</span>
             <AiStatusPill status={ai} />
           </div>
-          <p className="px-2 text-sm">Model: Qwen2.5 1.5B · ~1 GB, isang download lang</p>
-          <p className="px-2 text-sm text-muted-foreground">Basic mode muna sa ngayon. Gumagana pa rin ang paghahanap, kahit offline.</p>
+          <p className="px-2 text-body">Model: Qwen2.5 1.5B · ~1 GB, isang download lang</p>
+          <p className="px-2 text-body text-muted-foreground">Basic mode muna sa ngayon. Gumagana pa rin ang paghahanap, kahit offline.</p>
           <Button variant="outline" className="h-11" disabled>
             <DownloadSimple size={20} aria-hidden /> I-download ulit
           </Button>
         </Section>
 
         <Section Icon={ShieldCheck} title="Privacy">
-          <p className="px-2 text-sm">Nasa phone mo lang lahat. Walang account, walang server, walang tracking.</p>
+          <p className="px-2 text-body">Nasa phone mo lang lahat. Walang account, walang server, walang tracking.</p>
           <Button variant="destructive" className="h-11" onClick={() => setConfirmOpen(true)}>
             <Trash size={20} aria-hidden /> Burahin lahat
           </Button>
         </Section>
 
         <Section Icon={Info} title="About">
-          <p className="px-2 text-sm">KahitSaan · AppBuildersPH Hackathon 2026 · Local AI</p>
-          <p className="px-2 text-xs text-muted-foreground">
+          <p className="px-2 text-body">KahitSaan · AppBuildersPH Hackathon 2026 · Local AI</p>
+          <p className="px-2 text-meta text-muted-foreground">
             Catalog {catalog.version}
             {catalog.mock ? " · mock data, hindi pa totoong presyo" : ""}
           </p>

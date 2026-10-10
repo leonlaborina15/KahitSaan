@@ -1,25 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" fill="#FFFBF5"/>
-  <g transform="translate(96 81) scale(2.5)">
-    <path d="M18 58c0-20 20-34 46-34s46 14 46 34z" fill="#FFFFFF" stroke="#F0E6DA" stroke-width="3"/>
-    <g fill="#F4ECE0">
-      <ellipse cx="40" cy="44" rx="4" ry="2.4" transform="rotate(-20 40 44)"/>
-      <ellipse cx="58" cy="34" rx="4" ry="2.4" transform="rotate(15 58 34)"/>
-      <ellipse cx="78" cy="38" rx="4" ry="2.4" transform="rotate(-10 78 38)"/>
-      <ellipse cx="92" cy="48" rx="4" ry="2.4" transform="rotate(25 92 48)"/>
-      <ellipse cx="66" cy="48" rx="4" ry="2.4"/>
-    </g>
-    <path d="M12 58h104c0 30-22 52-52 52S12 88 12 58z" fill="#E2482C"/>
-    <path d="M12 58h104c-1 5-2 9-4 13H16c-2-4-3-8-4-13z" fill="#C93A20" opacity=".35"/>
-    <path d="M22 66h84" stroke="#FFC23D" stroke-width="4" stroke-linecap="round" stroke-dasharray="2 10"/>
-    <rect x="46" y="108" width="36" height="8" rx="4" fill="#C93A20"/>
-    <g transform="translate(0 4)">
-      <circle cx="50" cy="74" r="4.5" fill="#1A1410"/>
-      <circle cx="78" cy="74" r="4.5" fill="#1A1410"/>
-      <circle cx="51.5" cy="72.5" r="1.5" fill="#fff"/>
-      <circle cx="79.5" cy="72.5" r="1.5" fill="#fff"/>
-      <path d="M54 85q10 9 20 0" stroke="#1A1410" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-      <path d="M66 89q2 7 5 2" fill="#FF7A66"/>
-    </g>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112.64" fill="#E8501F"/>
+  <g transform="translate(81.92 81.92) scale(7.253333333333333)">
+  <path d="M7 26h34a17 17 0 0 1-34 0Z" fill="#FFF8F1"/>
+  <path d="M15 26a9 3 0 0 0 18 0" fill="none" stroke="#E8501F" stroke-width="2.5" stroke-linecap="round"/>
+  <g fill="none" stroke="#FFF8F1" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M12 20c5 0 6-10 11-10h10"/>
+    <path d="M12 10c5 0 6 10 11 10h10"/>
+    <path d="m30 6.5 3.5 3.5-3.5 3.5"/>
+    <path d="m30 16.5 3.5 3.5-3.5 3.5"/>
+  </g></g>
 </svg>

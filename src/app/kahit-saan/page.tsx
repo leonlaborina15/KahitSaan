@@ -105,11 +105,11 @@ export default function KahitSaan() {
     <div className="min-h-dvh" style={{ background: "linear-gradient(170deg, #C93A20 0%, #E2482C 50%, #F2802C 100%)" }}>
       <AppShell nav={false} header={false} bare>
         <div className="flex items-center justify-between py-3 text-white">
-          <span className="flex items-center gap-2 font-display text-xl font-extrabold">
+          <span className="flex items-center gap-2 text-title">
             <Shuffle size={22} weight="bold" aria-hidden /> Kahit Saan
           </span>
           <span className="flex items-center gap-2">
-            {tries > 1 && <span className="rounded-full bg-white/20 px-3 py-1 text-xs font-semibold">Pang-{tries} na try</span>}
+            {tries > 1 && <span className="rounded-full bg-white/20 px-3 py-1 text-meta font-semibold">Pang-{tries} na try</span>}
             <Button variant="ghost" size="icon" className="size-11 text-white hover:bg-white/15" aria-label="Isara" onClick={() => router.back()}>
               <X size={22} />
             </Button>
@@ -136,7 +136,7 @@ export default function KahitSaan() {
                         animate={{ rotateX: 0, opacity: 1 }}
                         exit={{ rotateX: -90, opacity: 0 }}
                         transition={{ duration: 0.1 }}
-                        className="mx-auto flex h-20 max-w-[300px] items-center justify-center rounded-[20px] bg-white/95 px-4 text-center font-display text-xl font-bold text-foreground shadow-lg"
+                        className="mx-auto flex h-20 max-w-[300px] items-center justify-center rounded-[20px] bg-white/95 px-4 text-center text-title text-foreground shadow-lg"
                       >
                         {flip || "…"}
                       </motion.div>
@@ -157,27 +157,27 @@ export default function KahitSaan() {
                   <div className="-mt-16 flex justify-center">
                     <Kanin mood="happy" size={96} />
                   </div>
-                  <span className="mx-auto w-fit rounded-full bg-mangga px-3 py-1 text-xs font-extrabold text-[#5a3c00]">Ito ang kakainin mo!</span>
+                  <span className="mx-auto w-fit rounded-full bg-mangga px-3 py-1 text-meta font-semibold text-[#5a3c00]">Ito ang kakainin mo!</span>
                   <div className="flex items-center gap-4">
                     <CategoryTile items={pick.items} size={64} />
                     <div className="flex min-w-0 flex-col gap-1">
-                      <h1 className="text-2xl leading-tight">{itemsLabel(pick.items)}</h1>
+                      <h1 className="text-title leading-tight">{itemsLabel(pick.items)}</h1>
                       <span className="flex items-center gap-3">
-                        <span className="font-display text-4xl font-extrabold tabular-nums">₱{pick.total}</span>
+                        <span className="text-display tabular-nums">₱{pick.total}</span>
                         <BusogMeter value={pick.fill} />
                       </span>
                     </div>
                   </div>
                   <ChainLine chain={pick.branch.chain} branch={pick.branch.name} />
-                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
+                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-body text-muted-foreground">
                     <span className="flex items-center gap-1"><MapPin size={16} weight="duotone" aria-hidden />{pick.distance_km.toFixed(1)} km</span>
                     <span className="flex items-center gap-1"><PersonSimpleWalk size={16} weight="duotone" aria-hidden />Lakad {pick.walk_min} min</span>
-                    <span className={cn("flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold", SPEED[pick.speed].cls)}>
+                    <span className={cn("flex items-center gap-1 rounded-full px-2 py-0.5 text-meta font-semibold", SPEED[pick.speed].cls)}>
                       <Clock size={14} weight="duotone" aria-hidden />~{pick.wait_min} min · {SPEED[pick.speed].label}
                     </span>
                   </div>
                   <OpenLabel o={pick} />
-                  <p className="flex flex-col gap-1 rounded-[16px] bg-ube-soft p-3 text-sm">
+                  <p className="flex flex-col gap-1 rounded-[16px] bg-ube-soft p-3 text-body">
                     <span className="flex gap-2">
                       <Sparkle size={16} weight="fill" className="mt-0.5 shrink-0 text-ube" aria-hidden />
                       {reason}
@@ -190,8 +190,8 @@ export default function KahitSaan() {
               {state === "none" && (
                 <div className="flex flex-col items-center gap-3 rounded-[28px] bg-card p-6 text-center">
                   <Kanin mood="sleepy" size={96} />
-                  <p className="font-display text-xl font-bold">Naubos na ang options!</p>
-                  <p className="text-sm text-muted-foreground">Napakita ko na lahat ng pasok ngayon.</p>
+                  <p className="text-title">Naubos na ang options!</p>
+                  <p className="text-body text-muted-foreground">Napakita ko na lahat ng pasok ngayon.</p>
                   <Button
                     size="lg"
                     className="h-12 w-full"
@@ -209,7 +209,7 @@ export default function KahitSaan() {
               {state === "error" && (
                 <div className="flex flex-col items-center gap-3 rounded-[28px] bg-card p-6 text-center" role="alert">
                   <Kanin mood="shocked" size={96} />
-                  <p className="font-display text-xl font-bold">Ay, may mali.</p>
+                  <p className="text-title">Ay, may mali.</p>
                   <Button size="lg" className="h-12 w-full" onClick={() => void roll()}>Subukan ulit</Button>
                 </div>
               )}
@@ -218,7 +218,7 @@ export default function KahitSaan() {
             <div className="flex flex-col gap-2">
               <Button
                 size="lg"
-                className="h-14 rounded-[16px] bg-white font-display text-lg text-primary hover:bg-white/95"
+                className="h-14 rounded-[16px] bg-white text-section text-primary hover:bg-white/95"
                 disabled={state !== "shown" || !pick}
                 onClick={() => pick && confirm(pick.items, pick.branch, pick.total)}
               >
@@ -227,7 +227,7 @@ export default function KahitSaan() {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-12 rounded-[16px] border-2 border-white bg-transparent text-base text-white hover:bg-white/15 hover:text-white"
+                className="h-12 rounded-[16px] border-2 border-white bg-transparent text-body text-white hover:bg-white/15 hover:text-white"
                 disabled={state === "shuffling" || state === "loading"}
                 onClick={() => void roll()}
               >
@@ -237,7 +237,7 @@ export default function KahitSaan() {
                 <button
                   type="button"
                   disabled={state !== "shown" || !pick}
-                  className="min-h-11 px-2 text-sm font-semibold text-white/90 underline disabled:opacity-50"
+                  className="min-h-11 px-2 text-body font-semibold text-white/90 underline disabled:opacity-50"
                   onClick={async () => {
                     if (!pick) return;
                     const main = pick.items.find((i) => ["meal", "main", "bundle"].includes(i.category)) ?? pick.items[0];
@@ -248,7 +248,7 @@ export default function KahitSaan() {
                 >
                   Ayoko nito
                 </button>
-                <button type="button" className="min-h-11 px-2 text-sm font-semibold text-white/90 underline" onClick={() => router.push("/results?q=")}>
+                <button type="button" className="min-h-11 px-2 text-body font-semibold text-white/90 underline" onClick={() => router.push("/results?q=")}>
                   Tingnan lahat
                 </button>
               </div>

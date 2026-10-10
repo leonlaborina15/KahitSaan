@@ -1,12 +1,12 @@
 "use client";
 
-import { BowlFood, Clock, GitBranch, Heart, MapPin, NavigationArrow, PersonSimpleWalk, Sparkle } from "@phosphor-icons/react";
-import { motion, useReducedMotion } from "framer-motion";
+import { NavigationArrow } from "@phosphor-icons/react";
 import { useApp } from "@/components/app-data";
+import { CheckIcon, HeartIcon, SparklesIcon } from "@/components/icons";
 import { Kanin } from "@/components/kanin";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { CategoryTile, OnDeviceBadge, branchName } from "@/components/visuals";
+import { CategoryTile, branchName } from "@/components/visuals";
 import { CHAIN_COLORS, CHAIN_NAMES, catalog } from "@/lib/catalog";
 import { mapsUrl } from "@/lib/rank/distance";
 import { branchesFor, comboKey, type BranchOption, type ItemResult, type Speed } from "@/lib/rank/explore";
@@ -22,40 +22,36 @@ export function itemsLabel(items: CatalogItem[]) {
 
 export const fillOf = (items: CatalogItem[]) => Math.min(5, Math.max(1, items.reduce((s, i) => s + i.fill_score, 0)));
 
-export function BusogMeter({ value, size = 16 }: { value: number; size?: number }) {
-  return (
-    <span className="flex items-center gap-0.5" role="img" aria-label={`Busog meter ${value} sa 5`}>
-      {[1, 2, 3, 4, 5].map((n) => (
-        <BowlFood key={n} size={size} weight={n <= value ? "fill" : "regular"} className={n <= value ? "text-brand" : "text-border"} aria-hidden />
-      ))}
-    </span>
-  );
+/** One muted word instead of a 5-bowl meter. */
+export const busogLabel = (fill: number) => (fill >= 5 ? "Pinakabusog" : fill >= 3 ? "Busog" : "Katamtaman");
+
+export function BusogMeter({ value }: { value: number; size?: number }) {
+  return <span className="text-micro">{busogLabel(value)}</span>;
 }
 
 export const SPEED: Record<Speed, { label: string; cls: string }> = {
-  fast: { label: "Usually mabilis", cls: "bg-success/12 text-success-ink" },
-  ok: { label: "Sakto", cls: "bg-muted text-foreground" },
-  slow: { label: "Usually matagal", cls: "bg-warning/18 text-warning-ink" },
+  fast: { label: "Usually mabilis", cls: "" },
+  ok: { label: "Sakto", cls: "" },
+  slow: { label: "Usually matagal", cls: "" },
 };
 
+/** "~5 min pila · Usually mabilis · Peak ngayon" as plain muted text. */
 export function WaitChip({ o }: { o: Pick<BranchOption, "speed" | "wait_min" | "peak"> }) {
   return (
-    <span className="flex flex-wrap items-center gap-1.5">
-      <span className={cn("inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold", SPEED[o.speed].cls)}>
-        <Clock size={14} weight="duotone" aria-hidden /> Pila ~{o.wait_min} min · {SPEED[o.speed].label}
-      </span>
-      {o.peak && <span className="rounded-full bg-warning/18 px-2.5 py-1 text-xs font-semibold text-warning-ink">Peak ngayon</span>}
+    <span className="text-meta">
+      ~{o.wait_min} min pila · {SPEED[o.speed].label}
+      {o.peak && " · Peak ngayon"}
     </span>
   );
 }
 
 export function OpenLabel({ o }: { o: Pick<BranchOption, "status"> }) {
-  return (
-    <span className={cn("text-xs font-semibold", !o.status.open ? "text-destructive" : o.status.closingSoon ? "text-warning-ink" : "text-success-ink")}>
-      {o.status.label}
-    </span>
-  );
+  return <span className={cn(!o.status.open && "text-destructive")}>{o.status.label}</span>;
 }
+
+/** "1.9 km · 29 min lakad · ~5 min pila" */
+export const metaLine = (r: Pick<BranchOption, "distance_km" | "walk_min" | "wait_min">) =>
+  `${r.distance_km.toFixed(1)} km · ${r.walk_min} min lakad · ~${r.wait_min} min pila`;
 
 function SaveButton({ items, className }: { items: CatalogItem[]; className?: string }) {
   const { saved, toggleItem } = useApp();
@@ -70,160 +66,124 @@ function SaveButton({ items, className }: { items: CatalogItem[]; className?: st
       }}
       aria-label={on ? "Tanggalin sa saved" : "I-save"}
       aria-pressed={on}
-      className={cn("flex size-11 shrink-0 items-center justify-center rounded-full hover:bg-muted", className)}
+      className={cn("flex size-11 shrink-0 items-center justify-center rounded-[10px]", on ? "text-brand" : "text-muted-foreground hover:text-foreground", className)}
     >
-      <Heart size={22} weight={on ? "fill" : "regular"} className={on ? "text-brand" : "text-muted-foreground"} />
+      <HeartIcon size={22} fill={on ? "currentColor" : "none"} />
     </button>
   );
 }
 
-export function ChainLine({ chain, branch, wrap = false }: { chain: CatalogItem["chain"]; branch?: string; wrap?: boolean }) {
+export function ChainLine({ chain, branch }: { chain: CatalogItem["chain"]; branch?: string; wrap?: boolean }) {
   return (
-    <span className={cn("flex min-w-0 items-center gap-x-2 text-sm", wrap && "flex-wrap")}>
-      <span className={cn("size-2.5 shrink-0 rounded-full", CHAIN_COLORS[chain])} aria-hidden />
-      <span className="shrink-0 font-semibold">{CHAIN_NAMES[chain]}</span>
-      {branch && <span className={cn("text-muted-foreground", !wrap && "truncate")}>{branchName(branch)}</span>}
+    <span className="flex min-w-0 items-center gap-1.5 text-meta">
+      <span className={cn("size-2 shrink-0 rounded-full", CHAIN_COLORS[chain])} aria-hidden />
+      <span className="shrink-0 text-foreground">{CHAIN_NAMES[chain]}</span>
+      {branch && <span className="truncate">· {branchName(branch)}</span>}
     </span>
   );
 }
 
-/** AI-written reason: ube soft box + spark + on-device label. */
+/** AI-written reason: plain muted text, one small sparkle. */
 export function ReasonBox({ text, compact = false }: { text: string; compact?: boolean }) {
-  if (compact)
-    return (
-      <span className="flex items-start gap-1.5 text-sm text-ube">
-        <Sparkle size={14} weight="fill" className="mt-0.5 shrink-0" aria-hidden />
-        <span className="line-clamp-2 text-foreground">{text}</span>
-      </span>
-    );
   return (
-    <span className="flex flex-col gap-1 rounded-[16px] bg-ube-soft p-3">
-      <span className="flex gap-2 text-sm">
-        <Sparkle size={16} weight="fill" className="mt-0.5 shrink-0 text-ube" aria-hidden />
-        <span>{text}</span>
-      </span>
-      <OnDeviceBadge className="pl-6" />
+    <span className="flex items-start gap-2 text-meta">
+      <SparklesIcon size={14} className="mt-0.5 shrink-0" aria-hidden />
+      <span className={cn(compact && "line-clamp-2")}>{text}</span>
     </span>
   );
 }
 
-function Stat({ Icon, top, bottom, cls }: { Icon: typeof Clock; top: string; bottom: string; cls?: string }) {
-  return (
-    <span className={cn("flex flex-1 flex-col items-center gap-0.5 rounded-[16px] bg-surface-2 px-2 py-2.5 text-center", cls)}>
-      <Icon size={20} weight="duotone" aria-hidden />
-      <span className="font-display text-base font-bold leading-none">{top}</span>
-      <span className="text-[11px] font-medium opacity-80">{bottom}</span>
-    </span>
-  );
-}
-
-function BranchCount({ n }: { n: number }) {
-  if (n <= 0) return null;
-  return (
-    <span className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground">
-      <GitBranch size={14} aria-hidden /> May {n} pang branch
-    </span>
-  );
-}
-
-/** Best pick hero card. */
+/** Best pick: inset art, name + price, checklist of why, one filled button. */
 export function HeroCard({ r }: { r: ItemResult }) {
   const { openDetail, confirm } = useApp();
-  const reduce = useReducedMotion();
   return (
-    <motion.article
-      whileTap={reduce ? undefined : { scale: 0.99 }}
-      className="relative flex flex-col gap-4 overflow-hidden rounded-[24px] border bg-card p-5 shadow-[var(--shadow-raised)]"
-      aria-label={`Best pick: ${itemsLabel(r.items)}`}
-    >
-      <span className="absolute left-0 top-4 rounded-r-full bg-mangga py-1 pl-4 pr-3 text-xs font-extrabold text-[#5a3c00]">★ Best pick</span>
-      <SaveButton items={r.items} className="absolute right-3 top-3" />
-      <button type="button" onClick={() => openDetail(r.items)} className="mt-8 flex gap-4 text-left">
-        <CategoryTile items={r.items} size={72} />
-        <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <h3 className="text-xl leading-tight">{itemsLabel(r.items)}</h3>
-          <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <span className="font-display text-4xl font-extrabold tabular-nums">₱{r.total}</span>
-            <BusogMeter value={r.fill} />
-          </span>
+    <article className="flex flex-col gap-4 rounded-[20px] bg-card p-2 pb-4 shadow-[var(--shadow-soft)]" aria-label={`Best pick: ${itemsLabel(r.items)}`}>
+      <div className="relative">
+        <button type="button" onClick={() => openDetail(r.items)} className="block w-full" aria-label={`Detalye: ${itemsLabel(r.items)}`}>
+          <CategoryTile items={r.items} size={0} className="h-40 w-full" />
+        </button>
+        <span className="absolute left-2 top-2 rounded-full bg-card px-2.5 py-1 text-micro text-foreground">Best pick</span>
+        <SaveButton items={r.items} className="absolute right-1 top-1" />
+      </div>
+      <div className="flex flex-col gap-2 px-2">
+        <div className="flex items-start justify-between gap-4">
+          <h3 className="text-section">{itemsLabel(r.items)}</h3>
+          <span className="shrink-0 text-title tabular-nums">₱{r.total}</span>
+        </div>
+        <ChainLine chain={r.branch.chain} branch={r.branch.name} />
+        <span className="text-meta">
+          {metaLine(r)} · <OpenLabel o={r} />
+          {r.other_branches > 0 && ` · May ${r.other_branches} pang branch`}
         </span>
-      </button>
-      <span className="flex flex-col gap-1">
-        <ChainLine chain={r.branch.chain} branch={r.branch.name} wrap />
-        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
-          <OpenLabel o={r} />
-          <BranchCount n={r.other_branches} />
-        </span>
-      </span>
-      <span className="flex gap-2">
-        <Stat Icon={MapPin} top={`${r.distance_km.toFixed(1)} km`} bottom="layo" />
-        <Stat Icon={PersonSimpleWalk} top={`${r.walk_min} min`} bottom="lakad" />
-        <Stat Icon={Clock} top={`~${r.wait_min} min`} bottom={r.peak ? "pila · peak" : "pila"} cls={SPEED[r.speed].cls} />
-      </span>
+      </div>
       {r.why.length > 0 && (
-        <span className="flex flex-wrap gap-1.5">
+        <ul className="flex flex-col gap-2 px-2">
           {r.why.map((w) => (
-            <span key={w} className="rounded-full border border-success/30 bg-success/10 px-2.5 py-1 text-xs font-semibold text-success-ink">
-              {w}
-            </span>
+            <li key={w} className="flex items-center gap-2 text-body">
+              <CheckIcon size={16} className="shrink-0 text-muted-foreground" aria-hidden /> {w}
+            </li>
           ))}
-        </span>
+        </ul>
       )}
-      <ReasonBox text={r.reason} />
-      <Button size="lg" className="h-14 rounded-[16px] font-display text-lg" onClick={() => confirm(r.items, r.branch, r.total)}>
-        Ito na!
-      </Button>
-    </motion.article>
+      <div className="px-2">
+        <ReasonBox text={r.reason} />
+      </div>
+      <div className="px-2">
+        <Button className="h-12 w-full rounded-[10px] text-body font-semibold" onClick={() => confirm(r.items, r.branch, r.total)}>
+          Ito na!
+        </Button>
+      </div>
+    </article>
   );
 }
 
-/** Compact horizontal card for other options. Full names, no truncation. */
+/** Other options: small art, text, price on the right. */
 export function CompactCard({ r }: { r: ItemResult }) {
   const { openDetail, confirm } = useApp();
-  const reduce = useReducedMotion();
   return (
-    <motion.article whileTap={reduce ? undefined : { scale: 0.98 }} className="flex gap-3 rounded-[24px] border bg-card p-3">
-      <button type="button" onClick={() => openDetail(r.items)} className="flex min-w-0 flex-1 gap-3 text-left" aria-label={`${itemsLabel(r.items)}, ₱${r.total}`}>
-        <CategoryTile items={r.items} size={52} />
+    <article className="flex flex-col gap-2 rounded-[20px] bg-card p-4 shadow-[var(--shadow-soft)]">
+      <button type="button" onClick={() => openDetail(r.items)} className="flex min-w-0 gap-4 text-left" aria-label={`${itemsLabel(r.items)}, ₱${r.total}`}>
+        <CategoryTile items={r.items} size={64} />
         <span className="flex min-w-0 flex-1 flex-col gap-1">
-          <span className="font-semibold leading-snug">{itemsLabel(r.items)}</span>
-          <ChainLine chain={r.branch.chain} branch={r.branch.name} wrap />
-          <span className="text-xs text-muted-foreground">
-            {r.distance_km.toFixed(1)} km · Lakad {r.walk_min} min ·{" "}
-            <span className={cn("font-semibold", r.speed === "fast" ? "text-success-ink" : r.speed === "slow" ? "text-warning-ink" : "")}>Pila ~{r.wait_min} min</span>
+          <span className="flex items-start justify-between gap-2">
+            <span className="text-section">{itemsLabel(r.items)}</span>
+            <span className="shrink-0 text-title tabular-nums">₱{r.total}</span>
           </span>
-          <BranchCount n={r.other_branches} />
+          <ChainLine chain={r.branch.chain} branch={r.branch.name} />
+          <span className="text-meta">{metaLine(r)}</span>
         </span>
       </button>
-      <span className="flex shrink-0 flex-col items-end justify-between gap-1">
-        <span className="font-display text-lg font-extrabold tabular-nums">₱{r.total}</span>
+      <span className="flex items-center gap-2">
+        <span className="flex-1 pl-20 text-micro">{busogLabel(r.fill)}</span>
         <SaveButton items={r.items} />
-        <Button size="sm" variant="outline" className="h-11 px-3" onClick={() => confirm(r.items, r.branch, r.total)}>
+        <Button variant="outline" className="h-11 rounded-[10px] px-4 text-meta font-semibold text-foreground" onClick={() => confirm(r.items, r.branch, r.total)}>
           Ito na!
         </Button>
       </span>
-    </motion.article>
+    </article>
   );
 }
 
-/** Carousel card: colored category tile on top. */
+/** Carousel card: inset art on top, name + price, chain, meta. */
 export function MiniFoodCard({ items, sub, onTap }: { items: CatalogItem[]; sub?: string; onTap?: () => void }) {
   const { openDetail } = useApp();
   return (
     <button
       type="button"
       onClick={onTap ?? (() => openDetail(items))}
-      className="flex w-[46%] min-w-40 shrink-0 snap-start flex-col overflow-hidden rounded-[24px] border bg-card text-left hover:border-brand/50"
+      className="flex w-[64%] min-w-52 max-w-64 shrink-0 snap-start flex-col gap-2 rounded-[20px] bg-card p-2 pb-4 text-left shadow-[var(--shadow-soft)]"
     >
-      <CategoryTile items={items} size={0} className="h-20 w-full rounded-none" />
-      <span className="flex flex-col gap-1 p-3">
-        <ChainLine chain={items[0].chain} />
-        <span className="line-clamp-2 min-h-10 text-sm font-semibold leading-snug">{itemsLabel(items)}</span>
-        <span className="flex items-center justify-between">
-          <span className="font-display text-lg font-extrabold tabular-nums">₱{items.reduce((s, i) => s + i.price, 0)}</span>
-          <BusogMeter value={fillOf(items)} size={14} />
+      <CategoryTile items={items} size={0} className="h-28 w-full" />
+      <span className="flex flex-col gap-1 px-2 pt-2">
+        <span className="flex items-start justify-between gap-2">
+          <span className="line-clamp-2 min-h-10 text-section">{itemsLabel(items)}</span>
+          <span className="shrink-0 text-title tabular-nums">₱{items.reduce((s, i) => s + i.price, 0)}</span>
         </span>
-        {sub && <span className="truncate text-xs text-muted-foreground">{sub}</span>}
+        <ChainLine chain={items[0].chain} />
+        <span className="truncate text-meta">
+          {sub ? `${sub} · ` : ""}
+          {busogLabel(fillOf(items))}
+        </span>
       </span>
     </button>
   );
@@ -241,48 +201,43 @@ function FoodDetailSheet() {
 
   return (
     <Sheet open={detail !== null} onOpenChange={(o) => !o && closeDetail()}>
-      <SheetContent side="bottom" showCloseButton={false} className="mx-auto flex max-h-[90dvh] max-w-[440px] flex-col rounded-t-[28px] px-0 pb-0">
+      <SheetContent side="bottom" showCloseButton={false} className="mx-auto flex max-h-[90dvh] max-w-[440px] flex-col rounded-t-[20px] px-0 pb-0">
         {detail && (
           <>
             <DragHandle />
-            <div className="flex flex-col gap-4 overflow-y-auto px-5 pb-4">
-              <SheetHeader className="flex-row items-center gap-4 p-0">
-                <CategoryTile items={items} size={64} />
-                <div className="flex min-w-0 flex-col gap-1 text-left">
-                  <ChainLine chain={items[0].chain} />
-                  <SheetTitle className="font-display text-2xl leading-tight">{itemsLabel(items)}</SheetTitle>
+            <div className="flex flex-col gap-4 overflow-y-auto px-4 pb-4">
+              <CategoryTile items={items} size={0} className="h-36 w-full" />
+              <SheetHeader className="gap-2 p-0 text-left">
+                <ChainLine chain={items[0].chain} />
+                <div className="flex items-start justify-between gap-4">
+                  <SheetTitle className="text-section">{itemsLabel(items)}</SheetTitle>
+                  <span className="shrink-0 text-title tabular-nums">₱{detail.total}</span>
                 </div>
+                <SheetDescription className="text-meta">
+                  {[...new Set(items.map((i) => i.includes))].join(" ")} · {busogLabel(fillOf(items))}
+                </SheetDescription>
               </SheetHeader>
-              <SheetDescription className="text-sm">{[...new Set(items.map((i) => i.includes))].join(" ")}</SheetDescription>
-              <div className="flex items-center justify-between rounded-[16px] bg-surface-2 px-4 py-3">
-                <span className="font-display text-3xl font-extrabold tabular-nums">₱{detail.total}</span>
-                <BusogMeter value={fillOf(items)} size={20} />
-              </div>
-              <h3 className="text-base">Mga branch, pinakamalapit muna</h3>
-              {!place && <p className="text-sm text-muted-foreground">Pumili muna ng lokasyon sa Home.</p>}
-              <ul className="flex flex-col gap-2">
+              <h3 className="pt-4 text-section">Mga branch, pinakamalapit muna</h3>
+              {!place && <p className="text-meta">Pumili muna ng lokasyon sa Home.</p>}
+              <ul className="flex flex-col divide-y">
                 {branches.map((b) => (
-                  <li key={b.branch.id} className="flex items-center gap-3 rounded-[20px] border bg-card p-3">
+                  <li key={b.branch.id} className="flex items-center gap-4 py-4">
                     <div className="flex min-w-0 flex-1 flex-col gap-1">
-                      <span className="truncate text-sm font-semibold">{branchName(b.branch)}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {b.distance_km.toFixed(1)} km · Lakad {b.walk_min} min
+                      <span className="truncate text-body">{branchName(b.branch)}</span>
+                      <span className="text-meta">
+                        {metaLine(b)} · <OpenLabel o={b} />
                       </span>
-                      <WaitChip o={b} />
-                      <OpenLabel o={b} />
                     </div>
-                    <Button variant="outline" className="h-11 px-4" disabled={!b.status.open} onClick={() => confirm(items, b.branch, detail.total)}>
+                    <Button variant="outline" className="h-11 rounded-[10px] px-4" disabled={!b.status.open} onClick={() => confirm(items, b.branch, detail.total)}>
                       Dito
                     </Button>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="flex gap-2 border-t bg-background px-5 py-4">
-              <span className="rounded-[16px] border">
-                <SaveButton items={items} />
-              </span>
-              <Button size="lg" className="h-12 flex-1 text-base" disabled={!nearestOpen} onClick={() => nearestOpen && confirm(items, nearestOpen.branch, detail.total)}>
+            <div className="flex gap-2 border-t bg-card px-4 py-4">
+              <SaveButton items={items} className="size-12 border" />
+              <Button size="lg" className="h-12 flex-1 rounded-[10px] text-body font-semibold" disabled={!nearestOpen} onClick={() => nearestOpen && confirm(items, nearestOpen.branch, detail.total)}>
                 {nearestOpen ? "Ito na!" : "Sarado lahat ngayon"}
               </Button>
             </div>
@@ -298,38 +253,34 @@ function ConfirmSheet() {
   const opt = confirmed && place ? branchesFor(catalog, confirmed.branch.chain, place).find((b) => b.branch.id === confirmed.branch.id) : undefined;
   return (
     <Sheet open={confirmed !== null} onOpenChange={(o) => !o && closeConfirm()}>
-      <SheetContent side="bottom" showCloseButton={false} className="mx-auto max-w-[440px] rounded-t-[28px] px-5 pb-8">
+      <SheetContent side="bottom" showCloseButton={false} className="mx-auto max-w-[440px] rounded-t-[20px] px-4 pb-8">
         {confirmed && (
           <>
             <DragHandle />
-            <SheetHeader className="items-center p-0 text-center">
+            <SheetHeader className="items-center gap-2 p-0 text-center">
               <Kanin mood="happy" size={72} />
-              <span className="text-sm font-semibold text-success-ink">Ayos! Ito ang kakainin mo:</span>
-              <SheetTitle className="font-display text-2xl">{itemsLabel(confirmed.items)}</SheetTitle>
-              <SheetDescription>
+              <span className="text-meta">Ayos! Ito ang kakainin mo:</span>
+              <SheetTitle className="text-section">{itemsLabel(confirmed.items)}</SheetTitle>
+              <SheetDescription className="text-meta">
                 {CHAIN_NAMES[confirmed.branch.chain]} · {branchName(confirmed.branch)}
               </SheetDescription>
             </SheetHeader>
-            <div className="flex items-center justify-between rounded-[16px] bg-surface-2 px-4 py-3">
-              <span className="font-display text-3xl font-extrabold tabular-nums">₱{confirmed.total}</span>
-              {opt && (
-                <span className="text-right text-sm text-muted-foreground">
-                  {opt.distance_km.toFixed(1)} km · Lakad {opt.walk_min} min
-                </span>
-              )}
+            <div className="flex flex-col items-center gap-1 py-4">
+              <span className="text-title tabular-nums">₱{confirmed.total}</span>
+              {opt && <span className="text-meta">{metaLine(opt)}</span>}
             </div>
             <a
               href={mapsUrl(confirmed.branch)}
               target="_blank"
               rel="noreferrer"
-              className="tap inline-flex h-12 w-full items-center justify-center gap-2 rounded-[16px] bg-primary text-base font-semibold text-primary-foreground hover:bg-primary/90"
+              className="tap inline-flex h-12 w-full items-center justify-center gap-2 rounded-[10px] bg-primary text-body font-semibold text-primary-foreground hover:bg-primary/90"
             >
               <NavigationArrow size={20} weight="fill" aria-hidden /> Buksan sa Maps
             </a>
-            <Button variant="ghost" size="lg" className="h-12" onClick={closeConfirm}>
+            <Button variant="ghost" size="lg" className="h-12 rounded-[10px]" onClick={closeConfirm}>
               Tapos
             </Button>
-            <p className="text-center text-xs text-muted-foreground">Kailangan ng internet para sa directions. Naka-save na sa Kinain.</p>
+            <p className="text-center text-micro">Kailangan ng internet para sa directions. Naka-save na sa Kinain.</p>
           </>
         )}
       </SheetContent>

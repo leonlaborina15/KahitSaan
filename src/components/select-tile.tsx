@@ -45,8 +45,8 @@ export function SelectTile({
         </span>
       )}
       <span className="flex flex-col">
-        <span className={cn("font-semibold", layout === "tile" ? "text-sm" : "text-base")}>{label}</span>
-        {helper && <span className={cn("text-sm", on ? "text-white/85" : "text-muted-foreground")}>{helper}</span>}
+        <span className={cn("font-semibold", layout === "tile" ? "text-body" : "text-body")}>{label}</span>
+        {helper && <span className={cn("text-body", on ? "text-white/85" : "text-muted-foreground")}>{helper}</span>}
       </span>
       {badge ??
         (on && (
@@ -57,6 +57,14 @@ export function SelectTile({
     </button>
   );
 }
+
+/** 36px chip; the only fully rounded element. Off = outline + muted, on = dark fill. */
+export const chipClass = (on: boolean) =>
+  cn(
+    "relative inline-flex h-9 shrink-0 items-center gap-1.5 rounded-full border px-3.5 text-meta font-semibold transition-colors",
+    "after:absolute after:-inset-y-1 after:inset-x-0", // 44px touch target
+    on ? "border-foreground bg-foreground text-background" : "border-border-strong text-muted-foreground hover:text-foreground",
+  );
 
 export function SelectChip({
   on,
@@ -74,24 +82,14 @@ export function SelectChip({
   tag?: string;
 }) {
   return (
-    <button
-      type="button"
-      aria-pressed={on}
-      onClick={onClick}
-      className={cn(
-        "inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border px-4 text-sm font-semibold transition-colors",
-        on ? "border-primary bg-primary text-primary-foreground" : "bg-card hover:border-brand/50",
-      )}
-    >
-      {on && rank !== undefined ? (
-        <span className="flex size-5 items-center justify-center rounded-full bg-white text-[11px] font-bold text-primary" aria-label={`Pang-${rank}`}>
-          {rank}
+    <button type="button" aria-pressed={on} onClick={onClick} className={chipClass(on)}>
+      {on && rank !== undefined && (
+        <span className="tabular-nums" aria-label={`Pang-${rank}`}>
+          {rank}.
         </span>
-      ) : (
-        on && <Check size={16} weight="bold" aria-hidden />
       )}
       {children}
-      {tag && <span className={cn("rounded-full px-1.5 py-0.5 text-[10px] font-medium", on ? "bg-white/20" : "bg-muted text-muted-foreground")}>{tag}</span>}
+      {tag && <span className="text-micro opacity-70">· {tag}</span>}
     </button>
   );
 }

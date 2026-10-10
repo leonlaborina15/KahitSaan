@@ -1,6 +1,6 @@
 "use client";
 
-import { ClockCounterClockwise, Heart, House, Shuffle, User, type Icon } from "@phosphor-icons/react";
+import { HeartIcon, HistoryIcon, HomeIcon, LogoMark, ShuffleIcon, UserIcon } from "@/components/icons";
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,12 +10,12 @@ import { Kanin } from "@/components/kanin";
 import { cn } from "@/lib/utils";
 
 const LEFT = [
-  { href: "/", label: "Home", Icon: House },
-  { href: "/kinain", label: "Kinain", Icon: ClockCounterClockwise },
+  { href: "/", label: "Home", Icon: HomeIcon },
+  { href: "/kinain", label: "Kinain", Icon: HistoryIcon },
 ];
 const RIGHT = [
-  { href: "/saved", label: "Saved", Icon: Heart },
-  { href: "/ako", label: "Ako", Icon: User },
+  { href: "/saved", label: "Saved", Icon: HeartIcon },
+  { href: "/ako", label: "Ako", Icon: UserIcon },
 ];
 
 export function useOnline() {
@@ -41,56 +41,66 @@ export const buzz = () => {
 
 export function Wordmark() {
   return (
-    <span className="font-display text-xl font-extrabold tracking-tight" aria-label="KahitSaan">
-      Kah
-      <span className="relative inline-block">
-        ı<span className="absolute left-1/2 top-[0.2em] size-[0.28em] -translate-x-1/2 rounded-full bg-brand" aria-hidden />
-      </span>
-      tSaan
+    <span className="flex items-center gap-2 text-section" aria-label="KahitSaan">
+      <LogoMark size={24} className="text-brand" />
+      KahitSaan
     </span>
   );
 }
 
-function NavTab({ href, label, Icon, active }: { href: string; label: string; Icon: Icon; active: boolean }) {
+type NavIcon = typeof HomeIcon;
+
+function NavTab({ href, label, Icon, active }: { href: string; label: string; Icon: NavIcon; active: boolean }) {
   return (
     <Link
       href={href}
       aria-current={active ? "page" : undefined}
-      className={cn("flex min-h-14 flex-1 flex-col items-center justify-center gap-0.5 text-[11px] font-semibold", active ? "text-primary" : "text-muted-foreground")}
+      className={cn(
+        "flex h-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-[14px] text-micro transition-colors",
+        active ? "bg-primary-soft text-primary" : "text-muted-foreground hover:text-foreground",
+      )}
     >
-      <span className={cn("flex h-7 w-12 items-center justify-center rounded-full transition-colors", active && "bg-primary-soft")}>
-        <Icon size={22} weight={active ? "fill" : "regular"} aria-hidden />
-      </span>
+      <Icon size={22} fill={active ? "currentColor" : "none"} fillOpacity={0.15} />
       {label}
     </Link>
   );
 }
 
-/** Floating glass bar with raised center "Kahit Saan" button (pulses on Home). */
-function FloatingNav() {
+/** Raised orange circle; the shuffle icon spins on tap. */
+function CenterTab({ active }: { active: boolean }) {
+  const [spin, setSpin] = useState(0);
+  return (
+    <Link
+      href="/kahit-saan"
+      onClick={() => {
+        buzz();
+        setSpin((n) => n + 1);
+      }}
+      aria-label="Kahit Saan: ako na bahala pumili"
+      aria-current={active ? "page" : undefined}
+      className={cn("flex h-14 flex-1 flex-col items-center justify-end gap-0.5 text-micro", active ? "text-primary" : "text-foreground")}
+    >
+      <span className="-mt-7 mb-auto flex size-14 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-raised)] ring-4 ring-background">
+        <ShuffleIcon key={spin} size={24} className={spin ? "animate-shuffle" : undefined} />
+      </span>
+      Kahit Saan
+    </Link>
+  );
+}
+
+/** Floating frosted bar: tinted tile on the active tab, raised circle in the middle. */
+function BottomNav() {
   const path = usePathname();
   return (
     <nav
       aria-label="Main"
-      className="fixed inset-x-4 bottom-4 z-30 mx-auto flex max-w-[408px] items-center rounded-[24px] border border-white/60 bg-card/75 px-1.5 shadow-[var(--shadow-raised)] backdrop-blur-xl dark:border-white/10"
+      className="fixed inset-x-3 bottom-3 z-30 mx-auto flex max-w-[416px] items-end gap-1 rounded-[20px] border bg-card/85 p-1.5 shadow-[var(--shadow-raised)] backdrop-blur-xl"
       style={{ marginBottom: "env(safe-area-inset-bottom)" }}
     >
       {LEFT.map((t) => (
         <NavTab key={t.href} {...t} active={path === t.href} />
       ))}
-      <div className="flex flex-1 justify-center">
-        <Link href="/kahit-saan" onClick={buzz} aria-label="Kahit Saan: ako na bahala pumili" className="-mt-8 flex flex-col items-center gap-1 text-[11px] font-bold text-foreground">
-          <span
-            className={cn(
-              "flex size-[60px] items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[var(--shadow-raised)] ring-4 ring-mangga",
-              path === "/" && "animate-ks-pulse",
-            )}
-          >
-            <Shuffle size={26} weight="bold" aria-hidden />
-          </span>
-          Kahit Saan
-        </Link>
-      </div>
+      <CenterTab active={path === "/kahit-saan"} />
       {RIGHT.map((t) => (
         <NavTab key={t.href} {...t} active={path === t.href} />
       ))}
@@ -102,8 +112,8 @@ export function OfflineBanner() {
   const online = useOnline();
   if (online) return null;
   return (
-    <div className="mx-5 mb-2 flex items-center gap-3 rounded-[16px] bg-warning/15 px-3 py-2 text-sm" role="status">
-      <Kanin mood="shocked" size={36} /> Offline ka, pero gumagana pa rin ako.
+    <div className="mx-4 mb-2 flex items-center gap-2 text-meta" role="status">
+      <Kanin mood="shocked" size={24} /> Offline ka, pero gumagana pa rin ako.
     </div>
   );
 }
@@ -115,9 +125,9 @@ export function AppShell({ children, nav = true, header = true, bare = false }: 
   const reduce = useReducedMotion();
 
   return (
-    <div className={cn("mx-auto flex min-h-dvh w-full max-w-[440px] flex-col", !bare && "bg-background sm:border-x")}>
+    <div className={cn("mx-auto flex min-h-dvh w-full max-w-[440px] flex-col", !bare && "bg-background")}>
       {header && (
-        <header className="sticky top-0 z-20 flex items-center justify-between bg-background/85 px-5 py-3 backdrop-blur-xl">
+        <header className="sticky top-0 z-20 flex h-14 items-center justify-between bg-background/90 px-4 backdrop-blur-xl">
           <Link href="/" aria-label="KahitSaan home" className="rounded-lg">
             <Wordmark />
           </Link>
@@ -130,11 +140,11 @@ export function AppShell({ children, nav = true, header = true, bare = false }: 
         initial={reduce ? false : { opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 380, damping: 32 }}
-        className={cn("flex flex-1 flex-col px-5", nav ? "pb-36" : "pb-4")}
+        className={cn("flex flex-1 flex-col px-4", nav ? "pb-nav" : "pb-4")}
       >
         {children}
       </motion.main>
-      {nav && <FloatingNav />}
+      {nav && <BottomNav />}
     </div>
   );
 }
@@ -142,7 +152,7 @@ export function AppShell({ children, nav = true, header = true, bare = false }: 
 /** Sticky bottom action area with a soft fade. Only used on screens without the nav (setup). */
 export function StickyActions({ children }: { children: React.ReactNode }) {
   return (
-    <div className="sticky bottom-0 z-10 -mx-5 mt-auto px-5 pb-4 pt-6">
+    <div className="sticky bottom-0 z-10 -mx-4 mt-auto px-4 pb-4 pt-6">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-6 bg-gradient-to-b from-transparent to-background" aria-hidden />
       <div className="relative flex gap-2 bg-background">{children}</div>
     </div>
@@ -152,7 +162,7 @@ export function StickyActions({ children }: { children: React.ReactNode }) {
 export function SectionTitle({ children, action }: { children: React.ReactNode; action?: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between">
-      <h2 className="text-lg">{children}</h2>
+      <h2 className="text-section">{children}</h2>
       {action}
     </div>
   );
