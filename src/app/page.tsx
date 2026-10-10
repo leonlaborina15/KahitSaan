@@ -1,11 +1,10 @@
 "use client";
 
-import { Heart, MagnifyingGlass, Microphone, Shuffle, Sparkle, Wallet, X, ClockCounterClockwise } from "@phosphor-icons/react";
-import { AnimatePresence, motion } from "framer-motion";
+import { LogoMark, MicIcon, SearchIcon, ShuffleIcon, SparklesIcon, SpinnerIcon, XIcon } from "@/components/icons";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
-import { toast } from "sonner";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useApp } from "@/components/app-data";
+import { AiStatusPill, useAiStatus } from "@/components/ai-status";
 import { runSearch } from "@/lib/engine";
 import { filtersFromRequest } from "@/lib/parse/filters";
 import { AppShell, SectionTitle, buzz } from "@/components/app-shell";
@@ -14,11 +13,10 @@ import { Kanin } from "@/components/kanin";
 import { LocationRow } from "@/components/location";
 import { RatingButtons } from "@/components/rating";
 import { Setup } from "@/components/setup";
-import { EmptyNote } from "@/components/states";
+import { EmptyNote, MiniSkeleton } from "@/components/states";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import { Welcome } from "@/components/welcome";
+import { chipClass } from "@/components/select-tile";
 import { catalog } from "@/lib/catalog";
 import { mealPeriod } from "@/lib/rank/explore";
 import { DEFAULT_PREFS } from "@/lib/store/db";
@@ -26,8 +24,6 @@ import { loadNope } from "@/lib/store/history";
 import type { CatalogItem, MealPeriod } from "@/lib/types";
 
 const QUICK = ["₱100 lang", "Gutom na gutom", "Bilis!", "Malapit lang", "Kaming 4", "Chicken"];
-const PROMPTS = ["₱150 lang, gutom na…", "kaming 4 sa Jollibee…", "bawal baboy, malapit lang…", "₱100 pababa, bilis!", "chicken, 'yung malapit"];
-const PROMPT_MS = 2600;
 const GREETING: Record<MealPeriod, string> = {
   breakfast: "Almusal time!",
   lunch: "Tanghalian na!",
@@ -45,34 +41,15 @@ function greetingPeriod(now: Date): MealPeriod {
 }
 
 function Carousel({ children }: { children: React.ReactNode }) {
-  return <div className="no-scrollbar -mx-5 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-5 px-5 pb-1">{children}</div>;
+  return <div className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pb-4 pt-1">{children}</div>;
 }
 
-/** Rotating example prompts shown inside the empty search box. */
-function CyclingPlaceholder() {
-  const [i, setI] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => setI((x) => (x + 1) % PROMPTS.length), PROMPT_MS);
-    return () => clearInterval(t);
-  }, []);
+/** One cell of the summary row: number in title step, label in micro. */
+function Stat({ value, label, onClick }: { value: string; label: string; onClick?: () => void }) {
   return (
-    <span className="pointer-events-none absolute left-3 top-3.5 flex items-center gap-2 text-base text-muted-foreground" aria-hidden>
-      <Sparkle size={18} weight="fill" className="shrink-0 text-ube" />
-      <AnimatePresence mode="wait">
-        <motion.span key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} transition={{ duration: 0.25 }}>
-          {PROMPTS[i]}
-        </motion.span>
-      </AnimatePresence>
-    </span>
-  );
-}
-
-function StatTile({ Icon, value, label, onClick }: { Icon: typeof Wallet; value: string; label: string; onClick?: () => void }) {
-  return (
-    <button type="button" onClick={onClick} className="flex flex-1 flex-col items-start gap-1 rounded-[20px] border bg-card p-3 text-left">
-      <Icon size={20} weight="duotone" className="text-primary" aria-hidden />
-      <span className="font-display text-xl font-extrabold leading-none">{value}</span>
-      <span className="text-[11px] font-medium text-muted-foreground">{label}</span>
+    <button type="button" onClick={onClick} className="flex min-h-11 flex-1 flex-col items-start gap-1 px-4 first:pl-0 text-left">
+      <span className="text-title tabular-nums">{value}</span>
+      <span className="text-micro">{label}</span>
     </button>
   );
 }
@@ -84,6 +61,8 @@ export default function Home() {
   const { ready, prefs, setPrefs, taste, place, history, saved, rate } = useApp();
   const [onboarding, setOnboarding] = useState<"welcome" | "setup">("welcome");
   const [text, setText] = useState("");
+  const [searching, startSearch] = useTransition();
+  const ai = useAiStatus();
   const [noped, setNoped] = useState<Set<string>>(new Set());
   const period = greetingPeriod(new Date());
 
@@ -108,10 +87,10 @@ export default function Home() {
   if (!ready)
     return (
       <AppShell nav={false}>
-        <div className="flex flex-col gap-4 py-6">
-          <Skeleton className="h-8 w-2/3" />
-          <Skeleton className="h-44 w-full rounded-[24px]" />
-          <Skeleton className="h-40 w-full rounded-[24px]" />
+        <div className="flex flex-col gap-4 py-8">
+          <span className="skeleton block h-8 w-2/3 rounded-[10px]" />
+          <span className="skeleton block h-12 w-full rounded-[10px]" />
+          <div className="flex gap-4 overflow-hidden"><MiniSkeleton /><MiniSkeleton /></div>
         </div>
       </AppShell>
     );
@@ -127,118 +106,104 @@ export default function Home() {
       </AppShell>
     );
 
-  const search = () => router.push(`/results?q=${encodeURIComponent(text.trim())}`);
+  const search = () => startSearch(() => router.push(`/results?q=${encodeURIComponent(text.trim())}`));
 
   return (
-    <AppShell>
-      <div className="flex flex-col gap-4 pt-1">
-        <LocationRow />
-
-        {toRate && (
-          <section className="flex items-center gap-3 rounded-[24px] border bg-card p-3" aria-label="Rating">
-            <p className="flex-1 pl-1 text-sm">
-              Nabusog ka ba sa <span className="font-semibold">{toRate.label}</span>{" "}
-              {new Date(toRate.at).toDateString() === new Date().toDateString() ? "kanina" : "kahapon"}?
-            </p>
-            <RatingButtons h={toRate} />
-            <button type="button" aria-label="Huwag na" onClick={() => void rate(toRate.id, null, true)} className="flex size-11 items-center justify-center rounded-full text-muted-foreground hover:bg-muted">
-              <X size={18} />
-            </button>
-          </section>
-        )}
-
-        {/* Hero: time-aware greeting on gradient + glowing search bar */}
-        <section
-          className="relative overflow-hidden rounded-[28px] p-5 text-white shadow-[var(--shadow-raised)]"
-          style={{ background: "linear-gradient(135deg, #C93A20 0%, #E2482C 45%, #F2802C 100%)" }}
-        >
-          <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-white/10" aria-hidden />
-          <div className="pointer-events-none absolute -bottom-12 left-1/3 size-32 rounded-full bg-mangga/20" aria-hidden />
-          <div className="relative flex items-start justify-between gap-3">
-            <div className="flex flex-col gap-1">
-              <h1 className="text-[34px] leading-none text-white">{GREETING[period]}</h1>
-              <p className="max-w-[22ch] text-sm text-white/90">Hindi makapili? Ako na bahala. Isang tap lang.</p>
-            </div>
-            <Kanin mood="hungry" size={84} bob className="-mr-1 -mt-1" />
+    <AppShell header={false}>
+      <div className="flex flex-col">
+        {/* Header: logo + where you are + AI status. */}
+        <header className="flex items-center gap-3 pb-4 pt-6">
+          <LogoMark size={32} className="shrink-0 text-brand" />
+          <div className="min-w-0 flex-1">
+            <LocationRow header />
           </div>
+          <AiStatusPill status={ai} />
+        </header>
 
-          {/* Glowing search bar: rotating conic ring + cycling prompts + pulsing mic */}
-          <div className="glow-ring relative mt-4 rounded-[22px] p-[2px]">
-            <div className="relative rounded-[20px] bg-card">
-              <label htmlFor="request" className="sr-only">Ano&apos;ng hanap mo?</label>
-              <Textarea
-                id="request"
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder=""
-                className="min-h-[104px] resize-none rounded-[20px] border-0 bg-transparent pl-3 pr-2 pt-3.5 text-base shadow-none focus-visible:ring-0"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !e.shiftKey) {
-                    e.preventDefault();
-                    search();
-                  }
-                }}
-              />
-              {!text && <CyclingPlaceholder />}
-              <span className="absolute bottom-2 right-2 flex items-center gap-1.5">
-                <button
-                  type="button"
-                  aria-label="Voice input, soon"
-                  onClick={() => toast("Voice input — malapit na!")}
-                  className="animate-mic-ping flex size-11 items-center justify-center rounded-full bg-surface-2 text-mangga"
-                >
-                  <Microphone size={20} weight="fill" aria-hidden />
-                </button>
-                <button
-                  type="button"
-                  aria-label="Hanapin"
-                  onClick={search}
-                  className="flex size-11 items-center justify-center rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
-                >
-                  <MagnifyingGlass size={20} weight="bold" aria-hidden />
-                </button>
-              </span>
+        {/* Hero card: date, greeting, Kanin with a speech bubble, the one primary action. */}
+        <section className="relative overflow-hidden rounded-[20px] bg-primary p-5 text-primary-foreground shadow-[var(--shadow-raised)]">
+          <div className="pointer-events-none absolute -right-14 -top-16 size-52 rounded-full bg-white/10" aria-hidden />
+          <div className="pointer-events-none absolute -bottom-20 -left-12 size-44 rounded-full bg-black/10" aria-hidden />
+          <div className="relative flex items-center justify-between gap-2">
+            <div className="flex flex-col gap-2">
+              <h1 className="text-display">{GREETING[period]}</h1>
+              <p className="max-w-[22ch] text-meta text-primary-foreground/90">Hindi makapili? Ako na bahala. Isang tap lang.</p>
             </div>
-          </div>
-
-          <div className="no-scrollbar -mx-5 mt-3 flex gap-2 overflow-x-auto px-5 pb-1">
-            {QUICK.map((q, i) => (
-              <motion.button
-                key={q}
-                type="button"
-                initial={{ opacity: 0, y: 12, scale: 0.92 }}
-                animate={{ opacity: 1, y: 0, scale: 1, transition: { delay: 0.3 + i * 0.06, type: "spring", stiffness: 400, damping: 22 } }}
-                onClick={() => setText((t) => (t.trim() ? `${t.trim()}, ${q}` : q))}
-                className="inline-flex min-h-11 shrink-0 items-center rounded-full bg-white/12 px-4 text-sm font-semibold text-white backdrop-blur-sm hover:bg-white/20"
-              >
-                + {q}
-              </motion.button>
-            ))}
+            <Kanin mood="hungry" size={96} bob className="shrink-0 drop-shadow-[0_8px_12px_rgb(0_0_0/0.18)]" />
           </div>
 
           <Button
             size="lg"
-            className="relative mt-3 h-14 w-full rounded-[16px] bg-white font-display text-lg text-primary ring-4 ring-mangga hover:bg-white/95"
+            className="relative mt-4 h-14 w-full gap-2 rounded-[10px] bg-card text-body font-semibold text-primary shadow-[var(--shadow-soft)] hover:bg-card/95"
             onClick={() => {
               buzz();
               router.push("/kahit-saan");
             }}
           >
-            <Shuffle size={22} weight="bold" aria-hidden /> Kahit Saan
+            <ShuffleIcon key="hero" size={22} aria-hidden /> Kahit Saan
           </Button>
         </section>
 
-        {/* Bento: stats */}
-        <div className="flex gap-2">
-          <StatTile Icon={Wallet} value={`₱${prefs.usual_budget}`} label="default budget" onClick={() => router.push("/ako")} />
-          <StatTile Icon={Heart} value={String(saved.items.length)} label="paborito" onClick={() => router.push("/saved")} />
-          <StatTile Icon={ClockCounterClockwise} value={String(eatenThisWeek)} label="nakain this week" onClick={() => router.push("/kinain")} />
+        {toRate && (
+          <section className="mt-4 flex items-center gap-2 rounded-[20px] bg-card py-1 pl-4 pr-1 shadow-[var(--shadow-xs)]" aria-label="Rating">
+            <p className="flex-1 text-meta">
+              Nabusog ka ba sa <span className="text-foreground">{toRate.label}</span>{" "}
+              {new Date(toRate.at).toDateString() === new Date().toDateString() ? "kanina" : "kahapon"}?
+            </p>
+            <RatingButtons h={toRate} />
+            <button type="button" aria-label="Huwag na" onClick={() => void rate(toRate.id, null, true)} className="flex size-11 items-center justify-center rounded-[10px] text-muted-foreground hover:text-foreground">
+              <XIcon size={18} />
+            </button>
+          </section>
+        )}
+
+        {/* Search: secondary, in a soft card. */}
+        <section className="mt-8 flex flex-col gap-2 rounded-[20px] bg-card p-4 shadow-[var(--shadow-soft)]">
+          <p className="flex items-center gap-1.5 pb-1 text-section"><SparklesIcon size={18} className="text-brand" aria-hidden /> Ano&apos;ng hanap mo?</p>
+          <div className="relative">
+            <label htmlFor="request" className="sr-only">Ano&apos;ng hanap mo?</label>
+            <textarea
+              id="request"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              rows={2}
+              placeholder="Ano'ng gusto mo? Hal. ₱150 lang, gutom na gutom, ayoko ng matagal"
+              className="block w-full resize-none rounded-[10px] border border-border bg-background py-3 pl-4 pr-12 text-body placeholder:text-muted-foreground focus-visible:border-foreground focus-visible:outline-none"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  search();
+                }
+              }}
+            />
+            <button type="button" disabled title="Soon" aria-label="Voice input, soon" className="absolute right-0 top-0 flex size-11 items-center justify-center text-muted-foreground opacity-60">
+              <MicIcon size={20} aria-hidden />
+            </button>
+          </div>
+          <div className="no-scrollbar edge-fade -mx-4 flex gap-2 overflow-x-auto px-4 py-1">
+            {QUICK.map((q) => (
+              <button key={q} type="button" onClick={() => setText((t) => (t.trim() ? `${t.trim()}, ${q}` : q))} className={chipClass(false)}>
+                + {q}
+              </button>
+            ))}
+          </div>
+          <Button variant="outline" size="lg" className="h-12 w-full gap-2 rounded-[10px] border-border-strong bg-transparent text-body font-semibold" onClick={search} disabled={searching} aria-busy={searching}>
+            {searching ? <SpinnerIcon size={20} className="animate-spin" aria-hidden /> : <SearchIcon size={20} aria-hidden />}
+            {searching ? "Hinahanap..." : "Hanapin"}
+          </Button>
+        </section>
+
+        {/* Summary: one borderless row with thin dividers. */}
+        <div className="mt-4 flex divide-x rounded-[20px] bg-card px-4 py-4 shadow-[var(--shadow-soft)]">
+          <Stat value={`₱${prefs.usual_budget}`} label="default budget" onClick={() => router.push("/ako")} />
+          <Stat value={String(saved.items.length)} label="paborito" onClick={() => router.push("/saved")} />
+          <Stat value={String(eatenThisWeek)} label="nakain this week" onClick={() => router.push("/kinain")} />
         </div>
 
-        <section className="flex flex-col gap-3 pt-2">
+        <section className="flex flex-col gap-4 pt-8">
           <SectionTitle>Bagay ngayong {MEAL_NAME[period]}</SectionTitle>
           {suggestions === null ? (
-            place ? <Skeleton className="h-48 rounded-[24px]" /> : <EmptyNote>Pumili ng lokasyon para makita ang mga malapit.</EmptyNote>
+            place ? <Carousel><MiniSkeleton /><MiniSkeleton /></Carousel> : <EmptyNote>Pumili ng lokasyon para makita ang mga malapit.</EmptyNote>
           ) : suggestions.length === 0 ? (
             <EmptyNote action={{ label: "Hanapin", onClick: search }}>Walang bukas na pasok sa budget mo ngayon.</EmptyNote>
           ) : (
@@ -250,7 +215,7 @@ export default function Home() {
           )}
         </section>
 
-        <section className="flex flex-col gap-3">
+        <section className="flex flex-col gap-4 pt-4">
           <SectionTitle>Paborito mo</SectionTitle>
           {saved.items.length === 0 ? (
             <EmptyNote>I-tap ang puso sa kahit anong pagkain para lumabas dito.</EmptyNote>

@@ -15,7 +15,8 @@ import { EmptyResults, ErrorState, ResultsSkeleton } from "@/components/states";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { catalog } from "@/lib/catalog";
-import { runSearch, type SearchOutput } from "@/lib/engine";
+import { llmParse, llmReasons } from "@/lib/ai/llm";
+import { parseRequest, runSearch, type SearchOutput } from "@/lib/engine";
 import { filtersFromRequest } from "@/lib/parse/filters";
 import { parseRules } from "@/lib/parse/rules";
 import { pickWeighted, type ExploreFilters, type ItemResult } from "@/lib/rank/explore";
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 const MAX_SHOWN = 11; // best pick + up to 10 more
 const SHUFFLE_MS = 780;
 const SETTLE_MS = 650;
+const MATCH_WORDS = { cheap: "mura", fast: "mabilis", near: "malapit", filling: "busog", taste: "swak sa panlasa" };
 
 /** Score-weighted shuffle of the current results (Kahit Saan's pickWeighted on a shrinking pool). */
 function weightedOrder(results: ItemResult[]): string[] {
@@ -91,6 +93,28 @@ function ResultsInner() {
     if (!reduce) setSettling(true);
   }
 
+  // Local LLM (when ready): re-parse the request and upgrade the filters; rule parse stays if it fails/times out.
+  useEffect(() => {
+    if (!prefs || ai.state !== "ready" || !q.trim()) return;
+    let live = true;
+    void parseRequest(q, prefs, { llm: llmParse }).then((p) => {
+      if (!live || p.parser !== "llm") return;
+      setFilters((prev) => {
+        const m = mergeQuery(prev, p.filters, q);
+        const next = { ...m, avoid: [...new Set([...m.avoid, ...p.filters.avoid])] };
+        // Never let the AI turn a working search into an empty one.
+        const count = (f: ExploreFilters | null) => {
+          const r = f && run(f);
+          return r && r !== "error" ? r.results.length : 0;
+        };
+        return count(next) === 0 && count(prev) > 0 ? prev : next;
+      });
+    });
+    return () => {
+      live = false;
+    };
+  }, [q, prefs, ai.state]);
+
   // Short "computing" beat so the skeleton → staggered reveal reads on a new search.
   useEffect(() => {
     if (!settling) return;
@@ -146,6 +170,42 @@ function ResultsInner() {
     return order.map((k) => byKey.get(k)).filter((r): r is ItemResult => !!r);
   }, [results, order]);
 
+  // LLM reason lines for the top 3 (one batched call); template reason stays until/unless it answers.
+  const [aiReasons, setAiReasons] = useState<Record<string, string>>({});
+  const top = shown && shown !== "error" ? shown.slice(0, 3) : [];
+  const topKey = top.map((r) => `${q}|${r.key}@${r.branch.id}`).join("|");
+  useEffect(() => {
+    if (ai.state !== "ready" || !top.length) return;
+    let live = true;
+    const facts = top.map((r) => ({
+      names: r.items.map((i) => i.name).join(" + "),
+      total: r.total,
+      distance_km: r.distance_km,
+      eta_min: r.eta_min,
+      matches: (Object.keys(r.sub) as (keyof typeof r.sub)[])
+        .sort((a, b) => r.sub[b] - r.sub[a])
+        .slice(0, 2)
+        .map((k) => MATCH_WORDS[k])
+        .join(", "),
+    }));
+    void llmReasons(q, facts).then((rs) => {
+      if (!live || !rs) return;
+      setAiReasons((m) => {
+        const n = { ...m };
+        top.forEach((r, i) => rs[i] && (n[`${q}|${r.key}@${r.branch.id}`] = rs[i]!));
+        return n;
+      });
+    });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [topKey, ai.state]);
+  const withReason = (r: ItemResult) => {
+    const s = aiReasons[`${q}|${r.key}@${r.branch.id}`];
+    return s ? { ...r, reason: s } : r;
+  };
+
   /** 👎 on a suggestion: slide it away, remember the item for 7 days (taste memory). */
   const nope = (r: ItemResult) => {
     const main = r.items.find((i) => ["meal", "main", "bundle"].includes(i.category)) ?? r.items[0];
@@ -198,7 +258,7 @@ function ResultsInner() {
 
   return (
     <AppShell header={false}>
-      <div className={cn("sticky top-0 z-20 -mx-5 flex items-center gap-2 bg-background/95 px-5 backdrop-blur-xl transition-[padding] duration-200", compact ? "py-2" : "py-4")}>
+      <div className={cn("sticky top-0 z-20 -mx-4 flex items-center gap-2 bg-background/95 px-4 backdrop-blur-xl transition-[padding] duration-200", compact ? "py-2" : "py-4")}>
         <Button variant="ghost" size="icon" className="size-11 shrink-0" aria-label="Balik sa Home" onClick={() => router.push("/")}>
           <CaretLeft size={22} />
         </Button>
@@ -217,7 +277,7 @@ function ResultsInner() {
               autoFocus
               value={draftQ}
               onChange={(e) => setDraftQ(e.target.value)}
-              className="min-h-11 flex-1 rounded-full border bg-card px-4 text-sm"
+              className="min-h-11 flex-1 rounded-[10px] border bg-card px-4 text-sm"
               placeholder="Hal. ₱150 lang, gutom na gutom"
             />
             <Button type="submit" size="icon" className="size-11 rounded-full" aria-label="Hanapin ulit">
@@ -228,7 +288,7 @@ function ResultsInner() {
           <button
             type="button"
             onClick={() => setEditingQuery(true)}
-            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-full border bg-card px-4 text-left text-sm"
+            className="flex min-h-11 min-w-0 flex-1 items-center gap-2 rounded-[10px] border bg-card px-4 text-left text-sm"
             aria-label="I-edit ang hanap"
           >
             <MagnifyingGlass size={18} className="shrink-0 text-muted-foreground" aria-hidden />
@@ -247,7 +307,7 @@ function ResultsInner() {
             <UnderstoodChips f={filters} set={set} fromSetup={initial.fromSetup} />
 
             {/* Budget slider with live ₱ readout — drags re-rank instantly. */}
-            <div className="flex items-center gap-3 rounded-[20px] border bg-card px-4 py-3">
+            <div className="flex items-center gap-4 rounded-[20px] bg-card px-4 py-2 shadow-[var(--shadow-xs)]">
               <Wallet size={18} weight="duotone" className="shrink-0 text-brand" aria-hidden />
               <Slider
                 min={50}
@@ -258,7 +318,7 @@ function ResultsInner() {
                 aria-label="Budget"
                 className="flex-1"
               />
-              <span className="w-16 text-right font-display text-xl font-extrabold tabular-nums" aria-live="polite">₱{filters.budget}</span>
+              <span className="w-16 text-right text-title tabular-nums" aria-live="polite">₱{filters.budget}</span>
             </div>
 
             <UnahinRow f={filters} set={set} isSetup={unahinIsSetup} />
@@ -269,7 +329,7 @@ function ResultsInner() {
               <Button variant="outline" className="h-11 gap-2 px-3" onClick={() => setFiltersOpen(true)}>
                 <SlidersHorizontal size={20} aria-hidden /> Filters
                 {activeCount > 0 && (
-                  <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">{activeCount}</span>
+                  <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">{activeCount}</span>
                 )}
               </Button>
               <Button
@@ -307,7 +367,7 @@ function ResultsInner() {
                       animate={{ rotateX: 0, opacity: 1 }}
                       exit={{ rotateX: -90, opacity: 0 }}
                       transition={{ duration: 0.08 }}
-                      className="mx-auto flex h-16 max-w-[280px] items-center justify-center rounded-[16px] bg-surface-2 px-4 text-center font-display text-lg font-bold"
+                      className="mx-auto flex h-16 max-w-[280px] items-center justify-center rounded-[16px] bg-surface-2 px-4 text-center text-lg font-semibold"
                     >
                       {flip || "…"}
                     </motion.div>
@@ -343,7 +403,7 @@ function ResultsInner() {
                           className="touch-pan-y"
                         >
                           {i === 1 && <h2 className="mb-3 text-lg">Iba pang option</h2>}
-                          {i === 0 ? <HeroCard r={r} onNope={() => nope(r)} /> : <CompactCard r={r} onNope={() => nope(r)} />}
+                          {i === 0 ? <HeroCard r={withReason(r)} onNope={() => nope(r)} /> : <CompactCard r={withReason(r)} onNope={() => nope(r)} />}
                         </motion.li>
                       ))}
                     </AnimatePresence>

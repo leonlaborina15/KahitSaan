@@ -1,11 +1,9 @@
 "use client";
 
-import { Cpu } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import { Kanin, type KaninMood } from "@/components/kanin";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 const LINES = ["Iniisip ko kung saan ka mabubusog...", "Kinukumpara ang presyo...", "Tinitingnan kung sino'ng bukas..."];
 
@@ -17,23 +15,71 @@ export function ResultsSkeleton() {
     return () => clearInterval(t);
   }, []);
   return (
-    <div className="flex flex-col gap-3" role="status" aria-live="polite">
-      <div className="flex items-center gap-3">
-        <Kanin mood="thinking" size={56} bob />
+    <div className="flex flex-col gap-4" role="status" aria-live="polite">
+      <div className="flex items-center gap-2">
+        <Kanin mood="thinking" size={40} bob />
         <div className="flex flex-col">
           <AnimatePresence mode="wait">
-            <motion.p key={i} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="text-sm font-semibold">
+            <motion.p key={i} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} className="text-body">
               {LINES[i]}
             </motion.p>
           </AnimatePresence>
-          <span className="flex items-center gap-1 text-xs font-semibold text-ube">
-            <Cpu size={14} weight="duotone" aria-hidden /> Ginagawa sa phone mo
-          </span>
+          <span className="text-micro">Ginagawa sa phone mo</span>
         </div>
       </div>
-      <Skeleton className="h-[380px] w-full rounded-[24px]" />
-      <Skeleton className="h-[112px] w-full rounded-[24px]" />
-      <Skeleton className="h-[112px] w-full rounded-[24px]" />
+      <HeroSkeleton />
+      <CompactSkeleton />
+      <CompactSkeleton />
+    </div>
+  );
+}
+
+const Bone = ({ className }: { className: string }) => <span className={"skeleton block rounded-[10px] " + className} aria-hidden />;
+
+/** Same shape as HeroCard. */
+export function HeroSkeleton() {
+  return (
+    <div className="flex flex-col gap-4 rounded-[20px] bg-card p-2 pb-4 shadow-[var(--shadow-soft)]">
+      <Bone className="h-40 w-full" />
+      <div className="flex flex-col gap-2 px-2">
+        <div className="flex justify-between gap-4">
+          <Bone className="h-5 w-3/5" />
+          <Bone className="h-6 w-14" />
+        </div>
+        <Bone className="h-3.5 w-2/5" />
+        <Bone className="h-3.5 w-4/5" />
+      </div>
+      <div className="px-2"><Bone className="h-12 w-full" /></div>
+    </div>
+  );
+}
+
+/** Same shape as CompactCard / carousel rows. */
+export function CompactSkeleton() {
+  return (
+    <div className="flex gap-4 rounded-[20px] bg-card p-4 shadow-[var(--shadow-soft)]">
+      <Bone className="size-16 shrink-0" />
+      <div className="flex flex-1 flex-col gap-2">
+        <div className="flex justify-between gap-2">
+          <Bone className="h-5 w-3/5" />
+          <Bone className="h-6 w-12" />
+        </div>
+        <Bone className="h-3.5 w-2/5" />
+        <Bone className="h-3.5 w-3/4" />
+      </div>
+    </div>
+  );
+}
+
+/** Same shape as MiniFoodCard. */
+export function MiniSkeleton() {
+  return (
+    <div className="flex w-[64%] min-w-52 max-w-64 shrink-0 flex-col gap-2 rounded-[20px] bg-card p-2 pb-4 shadow-[var(--shadow-soft)]">
+      <Bone className="h-28 w-full" />
+      <div className="flex flex-col gap-2 px-2 pt-2">
+        <Bone className="h-5 w-4/5" />
+        <Bone className="h-3.5 w-1/2" />
+      </div>
     </div>
   );
 }
@@ -55,14 +101,14 @@ export function KaninState({
   role?: "alert" | "status";
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-[24px] border bg-card p-6 text-center" role={role}>
+    <div className="flex flex-col items-center gap-4 py-8 text-center" role={role}>
       <Kanin mood={mood} size={88} />
       <div className="flex flex-col gap-1">
-        <p className="font-display text-xl font-bold">{title}</p>
-        {body && <p className="text-sm text-muted-foreground">{body}</p>}
+        <p className="text-section">{title}</p>
+        {body && <p className="text-meta">{body}</p>}
       </div>
       {action && (
-        <Button size="lg" className="h-12 w-full text-base" onClick={action.onClick}>
+        <Button size="lg" className="h-12 w-full rounded-[10px] text-body font-semibold" onClick={action.onClick}>
           {action.label}
         </Button>
       )}
@@ -80,8 +126,8 @@ export function EmptyResults({ budget, note, onRaise, onWiden, onClear }: { budg
       action={{ label: "Taasan budget", onClick: onRaise }}
       extra={
         <div className="flex w-full flex-col gap-2">
-          {onWiden && <Button variant="outline" size="lg" className="h-12" onClick={onWiden}>Palawakin ang layo</Button>}
-          {onClear && <Button variant="ghost" size="lg" className="h-12" onClick={onClear}>Alisin ang filters</Button>}
+          {onWiden && <Button variant="outline" size="lg" className="h-12 rounded-[10px]" onClick={onWiden}>Palawakin ang layo</Button>}
+          {onClear && <Button variant="ghost" size="lg" className="h-12 rounded-[10px]" onClick={onClear}>Alisin ang filters</Button>}
         </div>
       }
     />
@@ -95,12 +141,12 @@ export function ErrorState({ onRetry }: { onRetry: () => void }) {
 /** Compact empty state for lists and carousels: small sleepy Kanin + one action. */
 export function EmptyNote({ children, action }: { children: React.ReactNode; action?: { label: string; onClick: () => void } }) {
   return (
-    <div className="flex items-center gap-3 rounded-[24px] border border-dashed bg-card p-4">
-      <Kanin mood="sleepy" size={48} />
+    <div className="flex items-center gap-4 py-2">
+      <Kanin mood="sleepy" size={40} />
       <div className="flex flex-1 flex-col items-start gap-2">
-        <p className="text-sm text-muted-foreground">{children}</p>
+        <p className="text-meta">{children}</p>
         {action && (
-          <Button size="sm" variant="outline" className="h-11 px-4" onClick={action.onClick}>
+          <Button size="sm" variant="outline" className="h-11 rounded-[10px] px-4" onClick={action.onClick}>
             {action.label}
           </Button>
         )}

@@ -46,3 +46,10 @@ scraper/.env
 scraper/output/
 .venv/
 __pycache__/
+
+# demo videos / large media (keep the repo small)
+*.mp4
+*.mov
+*.webm
+*.mkv
+*.avi

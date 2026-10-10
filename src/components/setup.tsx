@@ -99,7 +99,7 @@ export function Setup({
       valid: p.usual_budget > 0,
       body: (
         <div className="flex flex-col gap-6">
-          <div className="text-center text-6xl font-bold tabular-nums" aria-live="polite">
+          <div className="text-center text-display tabular-nums" aria-live="polite">
             ₱{p.usual_budget}
           </div>
           <Slider
@@ -200,7 +200,7 @@ export function Setup({
                     onClick={() => update({ priority: toggle(p.priority, x.id) })}
                     badge={
                       rank >= 0 ? (
-                        <span className="ml-auto flex size-8 items-center justify-center rounded-full bg-white text-sm font-bold text-primary" aria-label={`Rank ${rank + 1}`}>
+                        <span className="ml-auto flex size-8 items-center justify-center rounded-full bg-white text-body font-semibold text-primary" aria-label={`Rank ${rank + 1}`}>
                           {rank + 1}
                         </span>
                       ) : undefined
@@ -210,7 +210,7 @@ export function Setup({
               );
             })}
           {p.priority.length > 0 && (
-            <button type="button" onClick={() => update({ priority: [] })} className="min-h-11 self-center text-sm font-medium text-primary underline">
+            <button type="button" onClick={() => update({ priority: [] })} className="min-h-11 self-center text-body text-primary underline">
               Ulitin
             </button>
           )}
@@ -262,7 +262,7 @@ export function Setup({
           <motion.div className="h-full rounded-full bg-brand" animate={{ width: `${((step + 1) / steps.length) * 100}%` }} transition={{ type: "spring", stiffness: 200, damping: 30 }} />
         </div>
         {!single && (
-          <button type="button" onClick={() => finish({ ...DEFAULT_PREFS, ...p })} className="min-h-11 px-2 text-sm font-medium text-muted-foreground underline">
+          <button type="button" onClick={() => finish({ ...DEFAULT_PREFS, ...p })} className="min-h-11 px-2 text-body text-muted-foreground underline">
             Laktawan
           </button>
         )}
@@ -279,7 +279,7 @@ export function Setup({
         >
           <div className="flex items-end gap-3">
             <Kanin mood={mood} size={64} bob={mood === "hungry"} />
-            <h1 className="flex-1 text-[26px] leading-tight">{s.title}</h1>
+            <h1 className="flex-1 text-title leading-tight">{s.title}</h1>
           </div>
           <p className="mb-4 text-muted-foreground">{s.helper}</p>
           {s.body}
@@ -295,7 +295,7 @@ export function Setup({
         <div className="relative flex-1">
           <Button
             size="lg"
-            className="h-12 w-full text-base"
+            className="h-12 w-full text-body"
             disabled={!s.valid}
             onClick={() => {
               if (!last) return go(step + 1);

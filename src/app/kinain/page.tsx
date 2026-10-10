@@ -48,7 +48,7 @@ export default function Kinain() {
   return (
     <AppShell>
       <div className="flex flex-col gap-5 py-2">
-        <h1 className="text-[32px]">Kinain</h1>
+        <h1 className="text-title">Kinain</h1>
 
         {/* Huling kinain mo section */}
         <section className="flex flex-col gap-3">
@@ -75,7 +75,7 @@ export default function Kinain() {
         ) : (
           [...groups.entries()].map(([day, list]) => (
             <section key={day} className="flex flex-col gap-2">
-              <h2 className="text-sm font-semibold text-muted-foreground">{day}</h2>
+              <h2 className="text-body font-semibold text-muted-foreground">{day}</h2>
               {list.map((h) => {
                 const items = h.item_ids.map((id) => catalog.items.find((i) => i.id === id)).filter((i) => !!i);
                 return (
@@ -83,15 +83,15 @@ export default function Kinain() {
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex min-w-0 flex-col gap-1">
                         <span className="font-semibold">{h.label}</span>
-                        <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <span className="flex items-center gap-2 text-body text-muted-foreground">
                           <span className={cn("size-2.5 shrink-0 rounded-full", CHAIN_COLORS[h.chain])} aria-hidden />
                           <span className="truncate">{CHAIN_NAMES[h.chain]} · {branchName(h.branch_name)}</span>
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-meta text-muted-foreground">
                           {new Date(h.at).toLocaleTimeString("fil-PH", { hour: "numeric", minute: "2-digit" })}
                         </span>
                       </div>
-                      <span className="shrink-0 text-lg font-bold tabular-nums">₱{h.total}</span>
+                      <span className="shrink-0 text-title tabular-nums">₱{h.total}</span>
                     </div>
                     <div className="flex items-center justify-between gap-2">
                       <RatingButtons h={h} />

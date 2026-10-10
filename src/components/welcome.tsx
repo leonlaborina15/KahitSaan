@@ -19,18 +19,18 @@ export function Welcome({ onStart, onSkip }: { onStart: () => void; onSkip: () =
           <span className="absolute inset-0 -z-10 scale-125 rounded-full bg-mangga/30 blur-2xl" aria-hidden />
           <Kanin mood="hungry" size={200} bob />
         </motion.div>
-        <p className="font-display text-lg font-bold text-primary">Hi, ako si Kanin!</p>
-        <h1 className="text-[32px] leading-[1.05]">
+        <p className=" text-section text-primary">Hi, ako si Kanin!</p>
+        <h1 className="text-display leading-[1.05]">
           Saan tayo kakain? <span className="text-primary">Kahit saan,</span> basta pasok sa budget.
         </h1>
         <p className="text-muted-foreground">30 seconds lang ang setup. Nasa phone mo lang ang info mo.</p>
       </div>
       <StickyActions>
         <div className="flex w-full flex-col items-center gap-2">
-          <Button size="lg" className="h-14 w-full rounded-[16px] font-display text-lg" onClick={onStart}>
+          <Button size="lg" className="h-14 w-full rounded-[16px] text-section" onClick={onStart}>
             Simulan na!
           </Button>
-          <button type="button" onClick={onSkip} className="min-h-11 px-4 text-sm font-medium text-muted-foreground underline">
+          <button type="button" onClick={onSkip} className="min-h-11 px-4 text-body text-muted-foreground underline">
             Laktawan
           </button>
         </div>
