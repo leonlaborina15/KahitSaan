@@ -2,7 +2,8 @@
 
 import { NavigationArrow } from "@phosphor-icons/react";
 import { useApp } from "@/components/app-data";
-import { CheckIcon, HeartIcon, SparklesIcon } from "@/components/icons";
+import { ConfettiBurst } from "@/components/confetti";
+import { CheckIcon, HeartIcon, SparklesIcon, ThumbsDownIcon } from "@/components/icons";
 import { Kanin } from "@/components/kanin";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -53,6 +54,33 @@ export function OpenLabel({ o }: { o: Pick<BranchOption, "status"> }) {
 export const metaLine = (r: Pick<BranchOption, "distance_km" | "walk_min" | "wait_min">) =>
   `${r.distance_km.toFixed(1)} km · ${r.walk_min} min lakad · ~${r.wait_min} min pila`;
 
+/** "0.8 km · Bukas hanggang 9pm" as muted text. */
+export function DistOpenPill({ o }: { o: Pick<BranchOption, "status" | "distance_km"> }) {
+  return (
+    <span className="text-meta">
+      {o.distance_km.toFixed(1)} km · <OpenLabel o={o} />
+    </span>
+  );
+}
+
+/** 👎 "Ayoko nito": card slides away, item is remembered via `nope`. */
+function NopeButton({ onNope, className }: { onNope: () => void; className?: string }) {
+  return (
+    <button
+      type="button"
+      aria-label="Ayoko nito"
+      title="Ayoko nito"
+      onClick={(e) => {
+        e.stopPropagation();
+        onNope();
+      }}
+      className={cn("flex size-11 shrink-0 items-center justify-center rounded-[10px] text-muted-foreground hover:text-foreground", className)}
+    >
+      <ThumbsDownIcon size={20} aria-hidden />
+    </button>
+  );
+}
+
 function SaveButton({ items, className }: { items: CatalogItem[]; className?: string }) {
   const { saved, toggleItem } = useApp();
   const key = comboKey(items);
@@ -94,16 +122,20 @@ export function ReasonBox({ text, compact = false }: { text: string; compact?: b
 }
 
 /** Best pick: inset art, name + price, checklist of why, one filled button. */
-export function HeroCard({ r }: { r: ItemResult }) {
+export function HeroCard({ r, onNope }: { r: ItemResult; onNope?: () => void }) {
   const { openDetail, confirm } = useApp();
   return (
-    <article className="flex flex-col gap-4 rounded-[20px] bg-card p-2 pb-4 shadow-[var(--shadow-soft)]" aria-label={`Best pick: ${itemsLabel(r.items)}`}>
+    <article className="relative flex flex-col gap-4 overflow-hidden rounded-[20px] bg-card p-2 pb-4 shadow-[var(--shadow-soft)]" aria-label={`Best pick: ${itemsLabel(r.items)}`}>
+      <ConfettiBurst />
       <div className="relative">
         <button type="button" onClick={() => openDetail(r.items)} className="block w-full" aria-label={`Detalye: ${itemsLabel(r.items)}`}>
           <CategoryTile items={r.items} size={0} className="h-40 w-full" />
         </button>
-        <span className="absolute left-2 top-2 rounded-full bg-card px-2.5 py-1 text-micro text-foreground">Best pick</span>
-        <SaveButton items={r.items} className="absolute right-1 top-1" />
+        <span className="absolute left-2 top-2 rounded-full bg-card px-2.5 py-1 text-micro text-foreground">★ Pinaka-bang-for-buck</span>
+        <span className="absolute right-1 top-1 flex">
+          {onNope && <NopeButton onNope={onNope} />}
+          <SaveButton items={r.items} />
+        </span>
       </div>
       <div className="flex flex-col gap-2 px-2">
         <div className="flex items-start justify-between gap-4">
@@ -138,7 +170,7 @@ export function HeroCard({ r }: { r: ItemResult }) {
 }
 
 /** Other options: small art, text, price on the right. */
-export function CompactCard({ r }: { r: ItemResult }) {
+export function CompactCard({ r, onNope }: { r: ItemResult; onNope?: () => void }) {
   const { openDetail, confirm } = useApp();
   return (
     <article className="flex flex-col gap-2 rounded-[20px] bg-card p-4 shadow-[var(--shadow-soft)]">
@@ -155,6 +187,7 @@ export function CompactCard({ r }: { r: ItemResult }) {
       </button>
       <span className="flex items-center gap-2">
         <span className="flex-1 pl-20 text-micro">{busogLabel(r.fill)}</span>
+        {onNope && <NopeButton onNope={onNope} />}
         <SaveButton items={r.items} />
         <Button variant="outline" className="h-11 rounded-[10px] px-4 text-meta font-semibold text-foreground" onClick={() => confirm(r.items, r.branch, r.total)}>
           Ito na!

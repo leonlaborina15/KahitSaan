@@ -2,7 +2,7 @@
 
 import { LogoMark, MicIcon, SearchIcon, ShuffleIcon, SparklesIcon, SpinnerIcon, XIcon } from "@/components/icons";
 import { useRouter } from "next/navigation";
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useApp } from "@/components/app-data";
 import { AiStatusPill, useAiStatus } from "@/components/ai-status";
 import { runSearch } from "@/lib/engine";
@@ -20,6 +20,7 @@ import { chipClass } from "@/components/select-tile";
 import { catalog } from "@/lib/catalog";
 import { mealPeriod } from "@/lib/rank/explore";
 import { DEFAULT_PREFS } from "@/lib/store/db";
+import { loadNope } from "@/lib/store/history";
 import type { CatalogItem, MealPeriod } from "@/lib/types";
 
 const QUICK = ["₱100 lang", "Gutom na gutom", "Bilis!", "Malapit lang", "Kaming 4", "Chicken"];
@@ -62,16 +63,22 @@ export default function Home() {
   const [text, setText] = useState("");
   const [searching, startSearch] = useTransition();
   const ai = useAiStatus();
+  const [noped, setNoped] = useState<Set<string>>(new Set());
   const period = greetingPeriod(new Date());
+
+  // "Ayoko nito" items stay out of the suggestion strip too.
+  useEffect(() => {
+    void loadNope().then(setNoped);
+  }, []);
 
   const suggestions = useMemo(() => {
     if (!prefs || !taste || !place) return null;
     try {
-      return runSearch(filtersFromRequest("", prefs).filters, { catalog, prefs, taste, here: place }).results.slice(0, 5);
+      return runSearch(filtersFromRequest("", prefs).filters, { catalog, prefs, taste, here: place, excludeItems: noped }).results.slice(0, 5);
     } catch {
       return [];
     }
-  }, [prefs, taste, place]);
+  }, [prefs, taste, place, noped]);
 
   const eatenThisWeek = history.filter((h) => Date.now() - Date.parse(h.at) < 7 * 86_400_000).length;
 
@@ -124,6 +131,7 @@ export default function Home() {
             </div>
             <Kanin mood="hungry" size={96} bob className="shrink-0 drop-shadow-[0_8px_12px_rgb(0_0_0/0.18)]" />
           </div>
+
           <Button
             size="lg"
             className="relative mt-4 h-14 w-full gap-2 rounded-[10px] bg-card text-body font-semibold text-primary shadow-[var(--shadow-soft)] hover:bg-card/95"

@@ -1,10 +1,16 @@
 "use client";
 
-export type AiStatus = { state: "ready" } | { state: "loading"; pct: number } | { state: "basic" };
+import { useEffect, useSyncExternalStore } from "react";
+import { getLlmStatus, initLlm, subscribeLlm, type LlmStatus } from "@/lib/ai/llm";
 
-/** Until the local model lands (TASKS 3.6) the app runs in Basic mode. */
+export type AiStatus = LlmStatus;
+
+const SERVER: AiStatus = { state: "basic", reason: "not-downloaded" };
+
+/** Live local-model status. Basic mode until a model is downloaded and loaded (SPEC §9). */
 export function useAiStatus(): AiStatus {
-  return { state: "basic" };
+  useEffect(() => void initLlm(), []);
+  return useSyncExternalStore(subscribeLlm, getLlmStatus, () => SERVER);
 }
 
 /** Plain micro text with a status dot. */
@@ -19,7 +25,7 @@ export function AiStatusPill({ status }: { status: AiStatus }) {
   return (
     <span className={base} role="status">
       <span className={status.state === "ready" ? "size-1.5 rounded-full bg-brand" : "size-1.5 rounded-full bg-muted-foreground"} aria-hidden />
-      {status.state === "ready" ? "AI handa" : "Basic mode"}
+      {status.state === "ready" ? "AI handa · offline" : "Basic mode"}
     </span>
   );
 }

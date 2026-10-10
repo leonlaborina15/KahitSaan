@@ -85,11 +85,18 @@ describe("notes explain empty results", () => {
   it("everything closed → who opens first", async () => {
     const { results, notes } = await run("mang inasal", { now: new Date(2026, 9, 9, 3, 0) });
     expect(results).toEqual([]);
-    expect(notes[0]).toEqual({ kind: "closed", text: "Sarado pa lahat ng malapit. Unang bubukas: Mang Inasal, 10am." });
+    expect(notes[0]).toEqual({ kind: "closed", text: "Sarado pa lahat ng malapit. Unang bubukas: Mang Inasal, 9am." });
   });
 
   it("nothing within the distance limit → how many within 5 km", async () => {
-    const { results, notes } = await run("malapit lang, mang inasal", { here: "robinsons-townville" });
+    // ~2 km SW of the nearest branch: outside the 1 km "malapit" limit, inside 5 km.
+    const { results, notes } = await search("malapit lang, mang inasal", {
+      catalog,
+      prefs,
+      taste: EMPTY_TASTE,
+      here: { id: "sw-edge", name: "SW edge", lat: 15.44, lng: 120.93 },
+      now: noon,
+    });
     expect(results).toEqual([]);
     expect(notes[0].kind).toBe("far");
     expect(notes[0].text).toMatch(/^Walang pasok sa loob ng 1 km\. May \d+ sa loob ng 5 km\.$/);

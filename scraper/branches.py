@@ -12,6 +12,7 @@ from __future__ import annotations
 import csv
 import re
 import sys
+import time
 from datetime import date
 from pathlib import Path
 from typing import Any
@@ -71,30 +72,89 @@ def coordinates(element: dict[str, Any]) -> tuple[Any, Any]:
     if element.get("type") == "node":
         return element.get("lat"), element.get("lon")
     center = element.get("center") or {}
-    return center.get("lat"), center.get("lon")
+    return center.get("lat") or element.get("lat"), center.get("lon") or element.get("lon")
+
+
+def query_overpass() -> list[dict[str, Any]]:
+    headers = {"User-Agent": "KahitSaan-dataset-builder/1.0"}
+    errors: list[str] = []
+    for endpoint in OVERPASS_URLS:
+        for method in ("post", "get"):
+            try:
+                if method == "post":
+                    response = requests.post(endpoint, data={"data": QUERY}, headers=headers, timeout=120)
+                else:
+                    response = requests.get(endpoint, params={"data": QUERY}, headers=headers, timeout=120)
+                response.raise_for_status()
+                elements = response.json().get("elements", [])
+                print(f"Overpass source: {endpoint} ({method.upper()})")
+                return elements
+            except (requests.RequestException, ValueError) as exc:
+                errors.append(f"{endpoint} {method.upper()}: {exc}")
+                print(f"Overpass mirror failed: {endpoint} {method.upper()}", file=sys.stderr)
+    print("FATAL: all Overpass endpoints failed:\n  " + "\n  ".join(errors), file=sys.stderr)
+    raise SystemExit(1)
+
+
+NOMINATIM_URL = "https://nominatim.openstreetmap.org/search"
+# (left, top, right, bottom) — same bbox as QUERY, viewbox order for Nominatim.
+VIEWBOX = "120.9,15.6,121.05,15.4"
+NOMINATIM_QUERIES = {
+    "jollibee": "Jollibee",
+    "mcdonalds": "McDonald's",
+    "mang-inasal": "Mang Inasal",
+    "chowking": "Chowking",
+    "kfc": "KFC",
+    "goldilocks": "Goldilocks",
+    "greenwich": "Greenwich",
+    "shakeys": "Shakey's",
+}
+
+
+def query_nominatim() -> list[dict[str, Any]]:
+    """Fallback collector when no Overpass mirror responds.
+
+    Searches each chain name bounded to Cabanatuan. Returns pseudo-elements in
+    Overpass shape: no OSM tags beyond the display name, so opening hours and
+    drive-through stay blank for manual review. Nominatim policy: max 1 req/s.
+    """
+    elements: list[dict[str, Any]] = []
+    for chain, term in NOMINATIM_QUERIES.items():
+        response = requests.get(
+            NOMINATIM_URL,
+            params={
+                "format": "jsonv2",
+                "q": term,
+                "viewbox": VIEWBOX,
+                "bounded": 1,
+                "limit": 50,
+            },
+            headers={"User-Agent": "KahitSaan-dataset-builder/1.0"},
+            timeout=60,
+        )
+        response.raise_for_status()
+        for hit in response.json():
+            if hit.get("osm_type") not in ("node", "way", "relation"):
+                continue
+            elements.append({
+                "type": hit["osm_type"],
+                "id": hit["osm_id"],
+                "lat": hit["lat"],
+                "lon": hit["lon"],
+                "tags": {"name": hit.get("name") or hit["display_name"].split(",")[0], "brand": term},
+            })
+        print(f"Nominatim: {len(response.json())} hits for {term}")
+        time.sleep(1.1)
+    print(f"Overpass source: {NOMINATIM_URL} (fallback, {len(elements)} elements)")
+    return elements
 
 
 def main() -> int:
-    elements = None
-    errors: list[str] = []
-    for endpoint in OVERPASS_URLS:
-        try:
-            response = requests.post(
-                endpoint,
-                data={"data": QUERY},
-                headers={"User-Agent": "KahitSaan-dataset-builder/1.0"},
-                timeout=120,
-            )
-            response.raise_for_status()
-            elements = response.json().get("elements", [])
-            print(f"Overpass source: {endpoint}")
-            break
-        except (requests.RequestException, ValueError) as exc:
-            errors.append(f"{endpoint}: {exc}")
-            print(f"Overpass mirror failed: {endpoint}", file=sys.stderr)
-    if elements is None:
-        print("FATAL: all Overpass endpoints failed:\n  " + "\n  ".join(errors), file=sys.stderr)
-        return 1
+    try:
+        elements = query_overpass()
+    except SystemExit:
+        print("Falling back to Nominatim search", file=sys.stderr)
+        elements = query_nominatim()
 
     rows: list[dict[str, str]] = []
     seen_osm: set[str] = set()

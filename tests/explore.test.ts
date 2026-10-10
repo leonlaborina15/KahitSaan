@@ -158,7 +158,7 @@ describe("dataset rules (docs/dataset.md)", () => {
     explore({ catalog: c, filters: filtersFromRequest(q, p, now).filters, prefs: p, taste: EMPTY_TASTE, here, now }).some((r) =>
       r.items.some((i) => i.id === meal.id),
     );
-  const noPork: Prefs = { ...prefs, avoid_pork: false, dislikes: [] };
+  const noPork: Prefs = { ...prefs, usual_budget: 1000, avoid_pork: false, dislikes: [] };
 
   it("contains_pork 'unknown' is hidden when avoiding pork", () => {
     const c = withItem({ contains_pork: "unknown" });
