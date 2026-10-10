@@ -24,12 +24,12 @@ Tests: `npm test`
 
 ## How to use
 1. **Setup (~30 s):** pick your usual budget, favorite foods, foods to avoid, appetite, priorities and favorite chains. "Skip" works too.
-2. **Location:** allow GPS, or tap a Cabanatuan landmark (SM City Cabanatuan, NE Pacific Mall, …).
+2. **Location:** tap the Cabanatuan landmark you are near (SM City Cabanatuan, NE Pacific Mall, …). No GPS is used; the data covers Cabanatuan City only.
 3. **Search on Home:** type what you want, or tap a quick chip ("₱100 lang", "Gutom na gutom", "Bilis!", "Kaming 4").
 4. **Results:** the top card is the best pick; below are alternatives. Tap the chips, budget slider or "Unahin" to re-rank instantly. Swipe a card away for "Ayoko nito".
 5. **"Ito na!"** saves your pick (taste memory) and opens Google Maps directions.
 6. **Kahit Saan** (center button): can't decide? It picks for you.
-7. **Turn on the local AI:** go to **Ako → AI sa phone mo → Download** (~1 GB) or **Small model** (~400 MB). The pill on top shows progress, then "AI handa · offline". You can keep searching while it downloads (Basic mode).
+7. **Turn on the local AI:** a pop-up asks to install the mini AI (~400 MB) or the full AI (~1 GB); you can also do it later in **Ako → AI sa phone mo**. When it finishes, a pop-up asks which Cabanatuan area you are near. You can keep searching while it downloads (Basic mode).
 8. **Offline test:** after the model is ready, turn on airplane mode and search again.
 
 Try these: `₱150 lang, gutom na gutom, malapit lang` · `4 kami, tig-150 each, gusto ng spaghetti` · `bawal baboy, 150, gutom` · `2am na, gutom, 150`
@@ -67,7 +67,7 @@ Menus, prices and branch locations were scraped from public sources on the inter
 ## Disclosures
 - **Models:** Qwen2.5-1.5B-Instruct and Qwen2.5-0.5B-Instruct (MLC builds) — Apache 2.0.
 - **Libraries:** Next.js, React, TypeScript, Tailwind CSS, shadcn/ui, framer-motion, @mlc-ai/web-llm, idb-keyval, Vitest. Scraper: Python, requests, firecrawl-py.
-- **APIs:** none at runtime for AI. Build time only: web scraping for menus, OpenStreetMap Overpass API for branches. Browser Geolocation, WebGPU, IndexedDB. Google Maps links for directions only.
+- **APIs:** none at runtime for AI. Build time only: web scraping for menus, OpenStreetMap Overpass API for branches. WebGPU, IndexedDB, Cache Storage. No GPS/geolocation. Google Maps links for directions only.
 - **Data sources:** public online menu listings; branch locations © OpenStreetMap contributors (ODbL), verified manually.
 - **Existing code:** create-next-app and shadcn/ui templates.
 - **AI dev tools:** Devin and Claude (Claude Code) were used to help plan and write code. They are not part of the running app.
