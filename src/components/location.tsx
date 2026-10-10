@@ -1,35 +1,23 @@
 "use client";
 
-import { CaretDown, Check, Crosshair, MapPin } from "@phosphor-icons/react";
+import { CaretDown, Check, MapPin } from "@phosphor-icons/react";
 import { useState } from "react";
 import { useApp } from "@/components/app-data";
-import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { catalog } from "@/lib/catalog";
 import { cn } from "@/lib/utils";
 
 export function LocationSheet({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
-  const { place, pickPlace, locate } = useApp();
-  const gpsRow = "flex min-h-12 w-full items-center gap-3 rounded-[10px] border border-primary bg-primary px-4 text-left text-body font-semibold text-primary-foreground hover:bg-primary/90 active:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary transition-colors";
+  const { place, pickPlace } = useApp();
   const locationRow = "flex min-h-12 w-full items-center gap-3 rounded-[10px] border bg-card px-4 text-left text-body hover:border-brand hover:bg-primary-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand transition-colors";
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="bottom" className="mx-auto max-w-[440px] rounded-t-[20px] px-5 pb-8">
         <SheetHeader className="px-0">
           <SheetTitle>Nasaan ka?</SheetTitle>
-          <SheetDescription>Para malaman namin kung ano&apos;ng malapit sa&apos;yo.</SheetDescription>
+          <SheetDescription>Pumili ng lugar sa Cabanatuan na malapit sa&apos;yo.</SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            className={gpsRow}
-            onClick={() => {
-              locate();
-              onOpenChange(false);
-            }}
-          >
-            <Crosshair size={20} weight="fill" className="text-primary-foreground" aria-hidden /> Gamitin ang GPS ko
-          </button>
           <p className="pt-2 text-meta font-semibold uppercase tracking-wide text-muted-foreground">Mga lugar sa Cabanatuan</p>
           {catalog.landmarks.map((l) => {
             const on = place?.source === "landmark" && place.label === l.name;

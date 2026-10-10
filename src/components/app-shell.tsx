@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { AiInstallPrompt } from "@/components/ai-install";
 import { AiStatusPill, useAiStatus } from "@/components/ai-status";
 import { Kanin } from "@/components/kanin";
 import { cn } from "@/lib/utils";
@@ -145,6 +146,7 @@ export function AppShell({ children, nav = true, header = true, bare = false }: 
         {children}
       </motion.main>
       {nav && <BottomNav />}
+      {nav && <AiInstallPrompt />}
     </div>
   );
 }

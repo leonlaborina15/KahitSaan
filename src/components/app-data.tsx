@@ -77,35 +77,15 @@ export function AppDataProvider({ children }: { children: React.ReactNode }) {
   const [locStatus, setLocStatus] = useState<LocStatus>("locating");
   const [confirmed, setConfirmed] = useState<AppData["confirmed"]>(null);
   const [detail, setDetail] = useState<AppData["detail"]>(null);
-  const locTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
 
-  /** GPS once (5 s timeout), else saved landmark, else ask (SPEC §10). */
+  /** No GPS: saved Cabanatuan landmark, else the first landmark (data covers Cabanatuan only). */
   const locate = useCallback(() => {
-    let done = false;
-    setLocStatus("locating");
-    const fallback = async () => {
-      if (done) return;
-      done = true;
-      const saved = await loadPlace();
-      if (saved) {
-        setPlace(saved);
-        setLocStatus("ready");
-      } else setLocStatus("need-pick");
-    };
-    if (!("geolocation" in navigator)) return void fallback();
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        if (done) return;
-        done = true;
-        setPlace({ lat: pos.coords.latitude, lng: pos.coords.longitude, label: "Lokasyon mo ngayon", source: "gps" });
-        setLocStatus("ready");
-      },
-      fallback,
-      { timeout: 5000, maximumAge: 60_000 },
-    );
-    clearTimeout(locTimer.current);
-    locTimer.current = setTimeout(fallback, 6000);
+    void loadPlace().then((saved) => {
+      const l = catalog.landmarks[0];
+      setPlace(saved ?? (l ? { lat: l.lat, lng: l.lng, label: l.name, source: "landmark" } : null));
+      setLocStatus(saved || l ? "ready" : "need-pick");
+    });
   }, []);
 
 
