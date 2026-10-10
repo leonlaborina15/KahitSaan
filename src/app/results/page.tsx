@@ -101,7 +101,13 @@ function ResultsInner() {
       if (!live || p.parser !== "llm") return;
       setFilters((prev) => {
         const m = mergeQuery(prev, p.filters, q);
-        return { ...m, avoid: [...new Set([...m.avoid, ...p.filters.avoid])] };
+        const next = { ...m, avoid: [...new Set([...m.avoid, ...p.filters.avoid])] };
+        // Never let the AI turn a working search into an empty one.
+        const count = (f: ExploreFilters | null) => {
+          const r = f && run(f);
+          return r && r !== "error" ? r.results.length : 0;
+        };
+        return count(next) === 0 && count(prev) > 0 ? prev : next;
       });
     });
     return () => {

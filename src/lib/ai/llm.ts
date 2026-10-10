@@ -1,6 +1,8 @@
 // On-device LLM (WebLLM in a Web Worker). Optional: everything works without it (AGENTS.md rule 5).
 import type { ChatCompletionMessageParam, MLCEngineInterface } from "@mlc-ai/web-llm";
 import { get, set } from "idb-keyval";
+import { catalog } from "@/lib/catalog";
+import { parseRules } from "@/lib/parse/rules";
 import { parseJsonLoose, validateFilters } from "@/lib/parse/validate";
 import type { Filters } from "@/lib/types";
 import { PARSE_SHOTS, PARSE_SYSTEM, REASON_SYSTEM, reasonUser, type ReasonFacts } from "./prompts";
@@ -88,6 +90,31 @@ function chat(messages: ChatCompletionMessageParam[], maxTokens: number): Promis
   return p;
 }
 
+// Words the menu actually has; LLM cravings/avoids outside this set would filter out everything.
+const VOCAB = new Set(
+  catalog.items.flatMap((i) => [...i.tags, i.food_type, i.protein ?? "", ...i.name.toLowerCase().split(/[^a-z]+/)]).filter((w) => w.length > 2),
+);
+VOCAB.add("pork");
+
+/**
+ * Rule parse + LLM: rules win on what they detected (they're exact on numbers and keywords);
+ * the LLM only fills what rules missed, and only with words the menu knows. Small models can't make it worse.
+ */
+export function mergeParses(rules: Filters, llm: Filters): Filters {
+  const known = (ws: string[]) => ws.filter((w) => VOCAB.has(w));
+  return {
+    budget: rules.budget ?? (llm.budget && llm.budget >= 30 ? llm.budget : null),
+    people: rules.people > 1 ? rules.people : llm.people,
+    hunger: rules.hunger !== "normal" ? rules.hunger : llm.hunger,
+    urgency: rules.urgency !== "normal" ? rules.urgency : llm.urgency,
+    max_distance_km: rules.max_distance_km ?? (llm.max_distance_km && llm.max_distance_km >= 0.5 ? llm.max_distance_km : null),
+    cravings: rules.cravings.length ? rules.cravings : known(llm.cravings),
+    avoid: [...new Set([...rules.avoid, ...known(llm.avoid)])],
+    chains: rules.chains.length ? rules.chains : llm.chains,
+    time_context: rules.time_context ?? llm.time_context,
+  };
+}
+
 /** Request text → Filters (SPEC §4). null when the model isn't ready or output is unusable. */
 export async function llmParse(text: string): Promise<Filters | null> {
   if (!engine) return null;
@@ -96,7 +123,7 @@ export async function llmParse(text: string): Promise<Filters | null> {
     120,
   );
   const raw = out ? parseJsonLoose(out) : null;
-  return raw && typeof raw === "object" ? validateFilters(raw) : null;
+  return raw && typeof raw === "object" ? mergeParses(parseRules(text), validateFilters(raw)) : null;
 }
 
 /** One batched call for the top results (SPEC §7). Returns null on any failure; caller keeps the template. */
